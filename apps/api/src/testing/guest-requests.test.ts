@@ -8,12 +8,21 @@ import { prisma } from "@/lib/prisma.js";
 const app = createApp();
 
 async function createGuestSession(roomNumber: string) {
-  const room = await prisma.room.findUniqueOrThrow({ where: { number: roomNumber } });
+  const pairingCode = "123456";
+  const room = await prisma.room.update({
+    where: { number: roomNumber },
+    data: {
+      pairingCode,
+      pairingCodeExpiresAt: new Date(Date.now() + 5 * 60_000),
+    },
+  });
+
   const response = await app.request("http://localhost/guest/device-sessions", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       roomCode: room.code,
+      pairingCode,
       deviceFingerprint: `tablet-${roomNumber}-${Date.now()}`,
     }),
   });
@@ -62,6 +71,28 @@ test("guest current and history endpoints return room-scoped data", async () => 
   const historyPayload = await history.json();
   assert.equal(historyPayload.requests.length, 2);
   assert.equal(historyPayload.requests[0]?.roomNumber, "201");
+});
+
+test("guest parse request returns towel clarification for estonian generic towel", async () => {
+  const response = await app.request("http://localhost/guest/parse-request", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      rawText: "Ma tahan rätikut",
+    }),
+  });
+
+  assert.equal(response.status, 200);
+  const payload = await response.json();
+
+  assert.equal(payload.items.length, 0);
+  assert.equal(payload.category, "housekeeping");
+  assert.equal(payload.clarification?.prompt, "Which towel would you like?");
+  assert.equal(payload.clarification?.options.length, 2);
+  assert.deepEqual(
+    payload.clarification?.options.map((item: { name: string }) => item.name).sort(),
+    ["Bath Towel", "Hand Towel"],
+  );
 });
 
 test.after(async () => {

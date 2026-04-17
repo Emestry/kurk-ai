@@ -40,7 +40,34 @@ const QUANTITY_WORDS = new Map<string, number>([
   ["two", 2], ["three", 3], ["four", 4], ["five", 5],
   ["six", 6], ["seven", 7], ["eight", 8], ["nine", 9], ["ten", 10],
   ["extra", 1], ["another", 1], ["some", 1], ["couple", 2], ["pair", 2],
+  ["üks", 1], ["kaks", 2], ["kolm", 3], ["neli", 4], ["viis", 5],
+  ["kuus", 6], ["seitse", 7], ["kaheksa", 8], ["üheksa", 9], ["kümme", 10],
 ]);
+
+const GENERIC_ITEM_ALIASES = {
+  towel: [
+    "towel",
+    "towels",
+    "rätik",
+    "rätikud",
+    "rätikut",
+    "rätikuid",
+    "toalla",
+    "toallas",
+    "serviette",
+    "serviettes",
+    "handtuch",
+    "handtücher",
+    "полотенце",
+    "полотенца",
+  ],
+} as const satisfies Record<string, readonly string[]>;
+
+const CANONICAL_ALIAS_BY_TOKEN = new Map<string, string>(
+  Object.entries(GENERIC_ITEM_ALIASES).flatMap(([canonical, aliases]) =>
+    aliases.map((alias) => [singularizeToken(alias), canonical] as const),
+  ),
+);
 
 function normalizeForSubstring(value: string) {
   return value
@@ -71,6 +98,15 @@ function inferQuantity(normalizedText: string, normalizedName: string): number {
   return 1;
 }
 
+function inferQuantityForNeedle(normalizedText: string, needle: string): number {
+  const normalizedNeedle = normalizeForSubstring(needle);
+  if (!normalizedNeedle) {
+    return 1;
+  }
+
+  return inferQuantity(normalizedText, normalizedNeedle);
+}
+
 function singularizeToken(token: string) {
   const normalized = token.trim().toLowerCase();
 
@@ -96,6 +132,10 @@ function tokenizeNormalizedText(value: string) {
     .filter(Boolean);
 }
 
+function normalizeTokenToCanonical(token: string) {
+  return CANONICAL_ALIAS_BY_TOKEN.get(token) ?? token;
+}
+
 function findAmbiguousInventoryOptions(
   rawText: string,
   inventory: InventoryEntry[],
@@ -113,8 +153,12 @@ function findAmbiguousInventoryOptions(
       continue;
     }
 
+    const canonicalToken = normalizeTokenToCanonical(token);
+
     const matchingItems = inventory.filter((item) =>
-      tokenizeNormalizedText(item.name).includes(token),
+      tokenizeNormalizedText(item.name).some(
+        (nameToken) => normalizeTokenToCanonical(nameToken) === canonicalToken,
+      ),
     );
 
     if (matchingItems.length < 2) {
@@ -127,14 +171,19 @@ function findAmbiguousInventoryOptions(
       return {
         inventoryItemId: item.id,
         inventoryItemName: item.name,
-        quantity: inferQuantity(normalized, normalizedName) || 1,
+        quantity:
+          inferQuantity(normalized, normalizedName) ||
+          inferQuantityForNeedle(normalized, token) ||
+          1,
         category: item.category,
       };
     });
 
     const distinguishingTokens = new Set(
       options.flatMap((option) =>
-        tokenizeNormalizedText(option.inventoryItemName).filter((nameToken) => nameToken !== token),
+        tokenizeNormalizedText(option.inventoryItemName).filter(
+          (nameToken) => normalizeTokenToCanonical(nameToken) !== canonicalToken,
+        ),
       ),
     );
 
@@ -145,7 +194,7 @@ function findAmbiguousInventoryOptions(
     }
 
     return {
-      prompt: `Which ${token} would you like?`,
+      prompt: `Which ${canonicalToken} would you like?`,
       options,
     };
   }
@@ -190,10 +239,6 @@ function fallbackSubstringMatch(
  * Uses an LLM to understand multilingual guest requests and map them to real inventory.
  */
 export async function understandGuestRequest(rawText: string): Promise<ParsedGuestRequest> {
-  if (!client) {
-    throw new ApiError(500, "OPENAI_API_KEY is not configured");
-  }
-
   const normalized = rawText.trim();
 
   if (!normalized) {
@@ -225,6 +270,10 @@ export async function understandGuestRequest(rawText: string): Promise<ParsedGue
       category: clarification.options[0]!.category,
       clarification,
     };
+  }
+
+  if (!client) {
+    throw new ApiError(500, "OPENAI_API_KEY is not configured");
   }
 
   const inventoryPrompt = inventory
