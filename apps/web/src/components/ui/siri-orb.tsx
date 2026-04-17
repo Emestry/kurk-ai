@@ -129,16 +129,21 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
           overflow: hidden;
           border-radius: 50%;
           position: relative;
+          clip-path: circle(50%);
+          -webkit-clip-path: circle(50%);
+          -webkit-mask-image: -webkit-radial-gradient(white, black);
+          mask-image: radial-gradient(circle, white 99%, transparent 100%);
         }
 
         .siri-orb::before,
         .siri-orb::after {
           content: "";
-          display: block;
+          position: absolute;
+          inset: 0;
           grid-area: stack;
-          width: 100%;
-          height: 100%;
           border-radius: 50%;
+          transform: translateZ(0);
+          backface-visibility: hidden;
         }
 
         .siri-orb::before {
@@ -177,6 +182,7 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
           .siri-orb {
             isolation: isolate;
             transform: translateZ(0);
+            -webkit-mask-image: -webkit-radial-gradient(circle, white 99%, transparent 100%);
           }
 
           .siri-orb::before {
