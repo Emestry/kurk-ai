@@ -1,10 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronLeft } from "lucide-react";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api";
 import { useRequestsQuery, useUpdateRequestMutation } from "@/hooks/useRequestsQuery";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { KanbanColumn } from "./KanbanColumn";
 import { RequestCard } from "./RequestCard";
 import { AcknowledgeModal } from "./AcknowledgeModal";
@@ -25,6 +32,7 @@ export function KanbanBoard() {
   const updateMutation = useUpdateRequestMutation();
   const [modal, setModal] = useState<ModalState>({ kind: "none" });
   const [donePage, setDonePage] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const doneColumnRef = useRef<HTMLDivElement | null>(null);
   const DONE_PAGE_SIZE = 25;
 
@@ -82,6 +90,44 @@ export function KanbanBoard() {
   if (error) return <p className="text-destructive">Failed to load requests.</p>;
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
 
+  const doneCards = pagedDone.map((r) => (
+    <RequestCard
+      key={r.id}
+      request={r}
+      onAcknowledge={() => setModal({ kind: "acknowledge", request: r })}
+      onMarkDelivered={() => markDelivered(r)}
+      onOpenDrawer={() => setModal({ kind: "drawer", request: r })}
+      subdued
+    />
+  ));
+
+  const donePagination =
+    grouped.done.length > DONE_PAGE_SIZE ? (
+      <div className="sticky bottom-0 flex items-center justify-between rounded-lg border border-border/60 bg-background/95 px-3 py-2 text-xs text-muted-foreground backdrop-blur">
+        <span>
+          Page {donePage + 1} of {donePageCount}
+        </span>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={donePage === 0}
+            onClick={() => handleDonePageChange(donePage - 1)}
+          >
+            Previous
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={donePage + 1 >= donePageCount}
+            onClick={() => handleDonePageChange(donePage + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    ) : null;
+
   return (
     <div className="flex h-[calc(100vh-8rem)] gap-4">
       <KanbanColumn title="Received" count={grouped.received.length}>
@@ -106,49 +152,46 @@ export function KanbanBoard() {
           />
         ))}
       </KanbanColumn>
-      <KanbanColumn
-        title="Completed"
-        count={grouped.done.length}
-        className="max-w-[24rem] flex-[0.9]"
-        description="Resolved requests are paged and kept quieter so active work stays front-and-center."
-        contentRef={doneColumnRef}
+
+      {/* Inline completed column only when the viewport has room. */}
+      <div className="hidden lg:contents">
+        <KanbanColumn
+          title="Completed"
+          count={grouped.done.length}
+          className="max-w-[24rem] flex-[0.9]"
+          description="Resolved requests are paged and kept quieter so active work stays front-and-center."
+          contentRef={doneColumnRef}
+        >
+          {doneCards}
+          {donePagination}
+        </KanbanColumn>
+      </div>
+
+      {/* Below lg: a small arrow bubble just under the nav bar opens the
+          history in a right-side sheet. */}
+      <button
+        type="button"
+        onClick={() => setHistoryOpen(true)}
+        aria-label="Show completed requests"
+        className="fixed right-3 top-[4.5rem] z-30 flex h-9 w-9 items-center justify-center rounded-full bg-black text-white shadow-md transition-colors hover:bg-black/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden"
       >
-        {pagedDone.map((r) => (
-          <RequestCard
-            key={r.id}
-            request={r}
-            onAcknowledge={() => setModal({ kind: "acknowledge", request: r })}
-            onMarkDelivered={() => markDelivered(r)}
-            onOpenDrawer={() => setModal({ kind: "drawer", request: r })}
-            subdued
-          />
-        ))}
-        {grouped.done.length > DONE_PAGE_SIZE ? (
-          <div className="sticky bottom-0 flex items-center justify-between rounded-lg border border-border/60 bg-background/95 px-3 py-2 text-xs text-muted-foreground backdrop-blur">
-            <span>
-              Page {donePage + 1} of {donePageCount}
-            </span>
-            <div className="flex items-center gap-2">
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={donePage === 0}
-                onClick={() => handleDonePageChange(donePage - 1)}
-              >
-                Previous
-              </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                disabled={donePage + 1 >= donePageCount}
-                onClick={() => handleDonePageChange(donePage + 1)}
-              >
-                Next
-              </Button>
-            </div>
+        <ChevronLeft className="h-5 w-5" />
+      </button>
+
+      <Sheet open={historyOpen} onOpenChange={setHistoryOpen}>
+        <SheetContent side="right" className="w-[22rem] p-0">
+          <SheetHeader className="p-4">
+            <SheetTitle>Completed · {grouped.done.length}</SheetTitle>
+          </SheetHeader>
+          <div
+            ref={doneColumnRef}
+            className="flex flex-col gap-3 overflow-y-auto px-4 pb-4"
+          >
+            {doneCards}
+            {donePagination}
           </div>
-        ) : null}
-      </KanbanColumn>
+        </SheetContent>
+      </Sheet>
 
       {modal.kind === "acknowledge" ? (
         <AcknowledgeModal
