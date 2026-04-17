@@ -12,6 +12,7 @@ interface Props {
   onAcknowledge: () => void;
   onMarkDelivered: () => void;
   onOpenDrawer: () => void;
+  subdued?: boolean;
 }
 
 /**
@@ -25,6 +26,7 @@ export function RequestCard({
   onAcknowledge,
   onMarkDelivered,
   onOpenDrawer,
+  subdued = false,
 }: Props) {
   const relative = formatDistanceToNowStrict(new Date(request.createdAt), {
     addSuffix: true,
@@ -33,7 +35,11 @@ export function RequestCard({
 
   return (
     <article
-      className="rounded-xl border border-border bg-card p-4 shadow-sm transition-colors hover:border-border/80 cursor-pointer"
+      className={`cursor-pointer rounded-xl border p-4 shadow-sm transition-colors ${
+        subdued
+          ? "border-border/60 bg-card/65 opacity-85 hover:border-border/70"
+          : "border-border bg-card hover:border-border/80"
+      }`}
       onClick={(e) => {
         if ((e.target as HTMLElement).closest("button")) return;
         onOpenDrawer();

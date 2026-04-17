@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api";
 import { useRequestsQuery, useUpdateRequestMutation } from "@/hooks/useRequestsQuery";
+import { Button } from "@/components/ui/button";
 import { KanbanColumn } from "./KanbanColumn";
 import { RequestCard } from "./RequestCard";
 import { AcknowledgeModal } from "./AcknowledgeModal";
@@ -23,6 +24,8 @@ export function KanbanBoard() {
   const { data, isLoading, error } = useRequestsQuery();
   const updateMutation = useUpdateRequestMutation();
   const [modal, setModal] = useState<ModalState>({ kind: "none" });
+  const [donePage, setDonePage] = useState(0);
+  const DONE_PAGE_SIZE = 25;
 
   const grouped = useMemo(() => {
     const received: GuestRequestDTO[] = [];
@@ -41,6 +44,11 @@ export function KanbanBoard() {
       done: sort(done),
     };
   }, [data]);
+  const donePageCount = Math.max(1, Math.ceil(grouped.done.length / DONE_PAGE_SIZE));
+  const pagedDone = grouped.done.slice(
+    donePage * DONE_PAGE_SIZE,
+    (donePage + 1) * DONE_PAGE_SIZE,
+  );
 
   async function markDelivered(request: GuestRequestDTO) {
     try {
@@ -85,16 +93,47 @@ export function KanbanBoard() {
           />
         ))}
       </KanbanColumn>
-      <KanbanColumn title="Delivered / rejected" count={grouped.done.length}>
-        {grouped.done.map((r) => (
+      <KanbanColumn
+        title="Completed"
+        count={grouped.done.length}
+        className="max-w-[24rem] flex-[0.9]"
+        description="Resolved requests are paged and kept quieter so active work stays front-and-center."
+      >
+        {pagedDone.map((r) => (
           <RequestCard
             key={r.id}
             request={r}
             onAcknowledge={() => setModal({ kind: "acknowledge", request: r })}
             onMarkDelivered={() => markDelivered(r)}
             onOpenDrawer={() => setModal({ kind: "drawer", request: r })}
+            subdued
           />
         ))}
+        {grouped.done.length > DONE_PAGE_SIZE ? (
+          <div className="sticky bottom-0 flex items-center justify-between rounded-lg border border-border/60 bg-background/95 px-3 py-2 text-xs text-muted-foreground backdrop-blur">
+            <span>
+              Page {donePage + 1} of {donePageCount}
+            </span>
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={donePage === 0}
+                onClick={() => setDonePage((page) => page - 1)}
+              >
+                Previous
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={donePage + 1 >= donePageCount}
+                onClick={() => setDonePage((page) => page + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </KanbanColumn>
 
       {modal.kind === "acknowledge" ? (
