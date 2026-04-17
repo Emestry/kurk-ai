@@ -1,6 +1,7 @@
 import { RequestCategory } from "@/generated/prisma/enums.js";
 import { withDbTransaction } from "@/lib/db.js";
 import { ApiError } from "@/lib/errors.js";
+import { requireStoredText } from "@/lib/input.js";
 
 const quantityWords = new Map<string, number>([
   ["a", 1],
@@ -59,7 +60,7 @@ function inferQuantity(text: string, name: string) {
  * Parses guest free-form text into concrete inventory line items using seeded inventory names.
  */
 export async function parseGuestRequestText(rawText: string) {
-  const normalizedText = normalizeText(rawText);
+  const normalizedText = normalizeText(requireStoredText(rawText, "Request text"));
 
   if (!normalizedText) {
     throw new ApiError(400, "Request text is required");

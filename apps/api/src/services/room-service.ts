@@ -7,6 +7,7 @@ import {
 import type { DbClient } from "@/lib/db.js";
 import { withDbTransaction } from "@/lib/db.js";
 import { ApiError } from "@/lib/errors.js";
+import { requireStoredText } from "@/lib/input.js";
 import { publishRealtimeEvent } from "@/lib/realtime.js";
 import { releaseReservations } from "@/services/inventory-service.js";
 
@@ -59,11 +60,13 @@ export async function createRoomDeviceSession(input: {
   deviceName?: string;
   ttlHours?: number;
 }) {
+  const roomCode = requireStoredText(input.roomCode, "Room code");
+  const pairingCode = requireStoredText(input.pairingCode, "Pairing code");
   const now = new Date();
 
   const { session, revokedSessions } = await withDbTransaction(async (db) => {
     const room = await db.room.findUnique({
-      where: { code: input.roomCode },
+      where: { code: roomCode },
       include: {
         devices: {
           where: { isActive: true },
@@ -84,10 +87,7 @@ export async function createRoomDeviceSession(input: {
     // Pairing-code gate: staff must issue a short-lived code from the dashboard
     // before a new tablet can claim the room. Without a valid code the real
     // tablet's existing session stays untouched.
-    const submittedCode = input.pairingCode.trim();
-    if (!submittedCode) {
-      throw new ApiError(401, "Pairing code is required");
-    }
+    const submittedCode = pairingCode;
     if (
       !room.pairingCode ||
       !room.pairingCodeExpiresAt ||
@@ -97,7 +97,9 @@ export async function createRoomDeviceSession(input: {
       throw new ApiError(401, "Invalid or expired pairing code");
     }
 
-    const deviceName = input.deviceName?.trim() || `Room ${room.number} Tablet`;
+    const deviceName = input.deviceName
+      ? requireStoredText(input.deviceName, "Device name")
+      : `Room ${room.number} Tablet`;
 
     let device = room.devices.find(
       (entry) => entry.deviceFingerprint === input.deviceFingerprint,
@@ -552,9 +554,15 @@ export async function updateRoom(
     return db.room.update({
       where: { id: roomId },
       data: {
-        number: input.number?.trim(),
-        code: input.code?.trim(),
-        accessToken: input.accessToken?.trim(),
+        ...(input.number !== undefined
+          ? { number: requireStoredText(input.number, "Room number") }
+          : {}),
+        ...(input.code !== undefined
+          ? { code: requireStoredText(input.code, "Room code") }
+          : {}),
+        ...(input.accessToken !== undefined
+          ? { accessToken: requireStoredText(input.accessToken, "Room access token") }
+          : {}),
         isActive: input.isActive,
       },
       include: {
@@ -597,8 +605,8 @@ export async function createRoomDevice(
     return db.roomDevice.create({
       data: {
         roomId,
-        name: input.name.trim(),
-        deviceFingerprint: input.deviceFingerprint.trim(),
+        name: requireStoredText(input.name, "Device name"),
+        deviceFingerprint: requireStoredText(input.deviceFingerprint, "Device fingerprint"),
         isActive: input.isActive ?? true,
         lastSeenAt: null,
       },
@@ -629,7 +637,9 @@ export async function updateRoomDevice(
     return db.roomDevice.update({
       where: { id: device.id },
       data: {
-        name: input.name?.trim(),
+        ...(input.name !== undefined
+          ? { name: requireStoredText(input.name, "Device name") }
+          : {}),
         isActive: input.isActive,
       },
     });

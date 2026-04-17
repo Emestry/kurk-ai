@@ -6,6 +6,7 @@ import {
 import type { DbClient } from "@/lib/db.js";
 import { withDbTransaction } from "@/lib/db.js";
 import { ApiError } from "@/lib/errors.js";
+import { requireStoredText, sanitizeOptionalStoredText } from "@/lib/input.js";
 import { publishRealtimeEvent } from "@/lib/realtime.js";
 
 interface LockedInventoryItem {
@@ -249,14 +250,17 @@ export async function createInventoryItem(input: {
 }) {
   assertNonNegativeQuantity(input.quantityInStock, "Quantity in stock");
   assertNonNegativeQuantity(input.lowStockThreshold, "Low stock threshold");
+  const sku = requireStoredText(input.sku, "SKU");
+  const name = requireStoredText(input.name, "Name");
+  const unit = requireStoredText(input.unit, "Unit");
 
   return withDbTransaction(async (db) => {
     const item = await db.inventoryItem.create({
       data: {
-        sku: input.sku.trim(),
-        name: input.name.trim(),
+        sku,
+        name,
         category: input.category,
-        unit: input.unit.trim(),
+        unit,
         quantityInStock: input.quantityInStock,
         lowStockThreshold: input.lowStockThreshold,
       },
@@ -287,9 +291,13 @@ export async function updateInventoryItem(
     const item = await db.inventoryItem.update({
       where: { id: inventoryItemId },
       data: {
-        ...(input.name !== undefined ? { name: input.name.trim() } : {}),
+        ...(input.name !== undefined
+          ? { name: requireStoredText(input.name, "Name") }
+          : {}),
         ...(input.category !== undefined ? { category: input.category } : {}),
-        ...(input.unit !== undefined ? { unit: input.unit.trim() } : {}),
+        ...(input.unit !== undefined
+          ? { unit: requireStoredText(input.unit, "Unit") }
+          : {}),
         ...(input.lowStockThreshold !== undefined
           ? { lowStockThreshold: input.lowStockThreshold }
           : {}),
@@ -330,7 +338,7 @@ export async function restockInventoryItem(input: {
       type: InventoryMovementType.restock,
       reason: InventoryAdjustmentReason.restock,
       quantityDelta: input.quantity,
-      note: input.note,
+      note: sanitizeOptionalStoredText(input.note, { preserveNewlines: true }),
     });
 
     await emitInventoryUpdate(db, input.inventoryItemId);
@@ -377,7 +385,7 @@ export async function adjustInventoryItem(input: {
       type: InventoryMovementType.adjustment,
       reason: input.reason,
       quantityDelta: input.quantityDelta,
-      note: input.note,
+      note: sanitizeOptionalStoredText(input.note, { preserveNewlines: true }),
     });
 
     await emitInventoryUpdate(db, input.inventoryItemId);
@@ -404,11 +412,22 @@ export async function checkInventoryAvailability(
 ): Promise<AvailabilityLine[]> {
   if (inputs.length === 0) return [];
 
+  for (const input of inputs) {
+    assertPositiveQuantity(input.quantity, "Requested quantity");
+  }
+
   const run = async (client: DbClient) => {
     const items = await client.inventoryItem.findMany({
-      where: { id: { in: inputs.map((input) => input.inventoryItemId) } },
+      where: {
+        id: { in: inputs.map((input) => input.inventoryItemId) },
+        isActive: true,
+      },
     });
     const byId = new Map(items.map((item) => [item.id, item]));
+
+    if (items.length !== new Set(inputs.map((input) => input.inventoryItemId)).size) {
+      throw new ApiError(400, "One or more inventory items are invalid");
+    }
 
     return inputs.map((input) => {
       const item = byId.get(input.inventoryItemId);
