@@ -1,11 +1,10 @@
 import { Tabs } from "./Tabs";
-import { UserMenu } from "./UserMenu";
 import { ConnectionIndicator } from "./ConnectionIndicator";
 import { SoundToggle } from "./SoundToggle";
 
 /**
  * Sticky top navigation bar containing the brand wordmark, page tabs,
- * connection indicator, sound toggle, and user menu.
+ * connection indicator and sound toggle.
  */
 export function TopBar() {
   return (
@@ -18,7 +17,6 @@ export function TopBar() {
       <div className="flex items-center gap-4">
         <ConnectionIndicator />
         <SoundToggle />
-        <UserMenu />
       </div>
     </header>
   );
