@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useRef } from "react";
+import { motion } from "motion/react";
 import SiriOrb from "@/components/ui/siri-orb";
 import { useGuestLanguage } from "@/lib/guest-language";
 
@@ -40,27 +41,46 @@ export function OrbButton({
     }
   }, [onStopListening]);
 
+  if (isListening) {
+    return null;
+  }
+
   return (
     <div className="fixed bottom-8 left-1/2 z-30 -translate-x-1/2">
-      <button
+      <motion.button
         type="button"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
         className="cursor-pointer touch-none rounded-full transition-transform hover:scale-105 active:scale-95"
         aria-label={isListening ? t("listening.stop") : t("listening.start")}
+        layoutId="guest-orb-button"
+        transition={{
+          type: "spring",
+          stiffness: 220,
+          damping: 24,
+        }}
       >
-        <SiriOrb
-          size="64px"
-          colors={{
-            bg: "var(--guest-orb-bg)",
-            c1: "var(--guest-orb-c1)",
-            c2: "var(--guest-orb-c2)",
-            c3: "var(--guest-orb-c3)",
+        <motion.div
+          layoutId="guest-orb-visual"
+          transition={{
+            type: "spring",
+            stiffness: 220,
+            damping: 24,
           }}
-          animationDuration={isListening ? 6 : 20}
-        />
-      </button>
+        >
+          <SiriOrb
+            size="64px"
+            colors={{
+              bg: "var(--guest-orb-bg)",
+              c1: "var(--guest-orb-c1)",
+              c2: "var(--guest-orb-c2)",
+              c3: "var(--guest-orb-c3)",
+            }}
+            animationDuration={20}
+          />
+        </motion.div>
+      </motion.button>
     </div>
   );
 }

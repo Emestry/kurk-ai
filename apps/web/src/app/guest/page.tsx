@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, LayoutGroup } from "motion/react";
 import type { GuestState, ParseRequestResponse, RequestStatus } from "@/lib/types";
 import { GuestLanguageProvider, useGuestLanguage } from "@/lib/guest-language";
 import { parseRequest, createRequest, clearSession } from "@/lib/api";
@@ -251,7 +252,7 @@ function GuestPageContent() {
       )}
 
       {state !== "setup" && (
-        <>
+        <LayoutGroup id="guest-orb-transition">
           <GuestView
             roomNumber={roomNumber!}
             connectionStatus={connectionStatus}
@@ -261,13 +262,15 @@ function GuestPageContent() {
             onStopListening={handleStopListening}
           />
 
-          {state === "listening" && (
-            <ListeningOverlay
-              interimTranscript={voice.interimTranscript}
-              finalTranscript={voice.finalTranscript}
-              onStopListening={handleStopListening}
-            />
-          )}
+          <AnimatePresence>
+            {state === "listening" && (
+              <ListeningOverlay
+                interimTranscript={voice.interimTranscript}
+                finalTranscript={voice.finalTranscript}
+                onStopListening={handleStopListening}
+              />
+            )}
+          </AnimatePresence>
 
           {state === "processing" && (
             <div className="fixed inset-0 z-40 flex items-center justify-center">
@@ -293,7 +296,7 @@ function GuestPageContent() {
           {state === "confirming" && errorMessage && (
             <ErrorPopup error={errorMessage} onDismiss={handleDismissError} />
           )}
-        </>
+        </LayoutGroup>
       )}
     </div>
   );
