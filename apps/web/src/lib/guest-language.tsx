@@ -50,6 +50,7 @@ export type TranslationKey =
   | "confirm.itemsFound"
   | "confirm.cancel"
   | "confirm.confirm"
+  | "hint.sayAgain"
   | "partial.description"
   | "partial.available"
   | "partial.unavailable"
@@ -113,6 +114,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "partial.available": "Available now",
     "partial.unavailable": "Not available",
     "partial.confirm": "Send partial order",
+    "hint.sayAgain": "I didn't catch that. Please try again.",
     "error.voiceNoSpeech": "I couldn't catch that. Please try again and speak a little closer.",
     "error.voiceTranscription": "I heard you, but couldn't understand the request clearly. Please try again.",
     "error.voicePermission": "Microphone access is blocked. Please allow microphone access and try again.",
@@ -169,6 +171,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "partial.available": "Praegu saadaval",
     "partial.unavailable": "Ei ole saadaval",
     "partial.confirm": "Saada osaline tellimus",
+    "hint.sayAgain": "Ma ei saanud sellest aru. Proovi palun uuesti.",
     "error.voiceNoSpeech": "Ma ei saanud sellest hästi aru. Proovi uuesti ja räägi veidi lähemalt.",
     "error.voiceTranscription": "Ma kuulsin sind, aga ei saanud päringust piisavalt selgelt aru. Proovi uuesti.",
     "error.voicePermission": "Mikrofoni kasutus on blokeeritud. Luba mikrofon ja proovi uuesti.",
@@ -225,6 +228,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "partial.available": "Disponible ahora",
     "partial.unavailable": "No disponible",
     "partial.confirm": "Enviar pedido parcial",
+    "hint.sayAgain": "No te he entendido. Inténtalo de nuevo.",
     "error.voiceNoSpeech": "No pude captar eso bien. Inténtalo de nuevo y habla un poco más cerca.",
     "error.voiceTranscription": "Te escuché, pero no pude entender claramente la solicitud. Inténtalo de nuevo.",
     "error.voicePermission": "El acceso al micrófono está bloqueado. Permite el acceso al micrófono e inténtalo de nuevo.",
@@ -281,6 +285,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "partial.available": "Disponible",
     "partial.unavailable": "Non disponible",
     "partial.confirm": "Envoyer la commande partielle",
+    "hint.sayAgain": "Je n’ai pas saisi. Veuillez réessayer.",
     "error.voiceNoSpeech": "Je n’ai pas bien compris. Veuillez réessayer en parlant un peu plus près.",
     "error.voiceTranscription": "Je vous ai entendu, mais je n’ai pas compris clairement la demande. Veuillez réessayer.",
     "error.voicePermission": "L’accès au microphone est bloqué. Veuillez autoriser le microphone puis réessayer.",
@@ -337,6 +342,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "partial.available": "Доступно сейчас",
     "partial.unavailable": "Недоступно",
     "partial.confirm": "Отправить частичный заказ",
+    "hint.sayAgain": "Я не расслышал. Пожалуйста, повторите.",
     "error.voiceNoSpeech": "Я не смог хорошо расслышать. Попробуйте ещё раз и говорите чуть ближе.",
     "error.voiceTranscription": "Я вас услышал, но не смог чётко понять запрос. Попробуйте ещё раз.",
     "error.voicePermission": "Доступ к микрофону заблокирован. Разрешите доступ к микрофону и попробуйте снова.",
@@ -393,6 +399,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "partial.available": "Jetzt verfügbar",
     "partial.unavailable": "Nicht verfügbar",
     "partial.confirm": "Teilbestellung senden",
+    "hint.sayAgain": "Ich habe das nicht verstanden. Bitte noch einmal.",
     "error.voiceNoSpeech": "Ich konnte das nicht gut erfassen. Bitte versuche es noch einmal und sprich etwas näher.",
     "error.voiceTranscription": "Ich habe dich gehört, konnte die Anfrage aber nicht klar verstehen. Bitte versuche es noch einmal.",
     "error.voicePermission": "Der Mikrofonzugriff ist blockiert. Bitte erlaube den Mikrofonzugriff und versuche es erneut.",

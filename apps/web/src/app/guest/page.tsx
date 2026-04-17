@@ -11,6 +11,7 @@ import {
   clearHistoryHiddenBefore,
   setHistoryHiddenBefore,
   previewGuestRequest,
+  ApiError,
   type AvailabilityLine,
 } from "@/lib/api";
 import { useGuestAudio } from "@/hooks/useGuestAudio";
@@ -26,6 +27,7 @@ import {
   ErrorPopup,
   PartialConfirmPopup,
 } from "@/components/guest/ConfirmPopup";
+import { VoiceHintToast } from "@/components/guest/VoiceHintToast";
 
 const ROOM_STORAGE_KEY = "kurkai-room-number";
 
@@ -54,10 +56,20 @@ function GuestPageContent() {
   const [parsedResult, setParsedResult] = useState<ParseRequestResponse | null>(null);
   const [lastTranscript, setLastTranscript] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [hintMessage, setHintMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [partialLines, setPartialLines] = useState<AvailabilityLine[] | null>(null);
   const hasArmedWakeWordRef = useRef(false);
   const requestStatusesRef = useRef<Map<string, RequestStatus>>(new Map());
+
+  // Only server (5xx) or raw network failures should interrupt the guest with
+  // the blocking error popup. Everything else — "couldn't hear that", no
+  // inventory match, 4xx parse errors — is something they can recover from
+  // by simply speaking again, so we surface a transient top toast instead.
+  const isConnectionError = (err: unknown) => {
+    if (err instanceof ApiError) return err.statusCode >= 500;
+    return err instanceof Error && !(err instanceof ApiError);
+  };
 
   const handleParseRequest = useCallback(async (transcript: string) => {
     try {
@@ -73,8 +85,8 @@ function GuestPageContent() {
       if (result.items.length === 0) {
         playCue("mismatch");
         setParsedResult(null);
-        setErrorMessage(t("error.noMatchingItems"));
-        setState("confirming");
+        setHintMessage(t("hint.sayAgain"));
+        setState("idle");
         return;
       }
 
@@ -82,9 +94,14 @@ function GuestPageContent() {
       setState("confirming");
     } catch (err) {
       playCue("error");
-      const message = err instanceof Error ? err.message : "Something went wrong, please try again.";
-      setErrorMessage(message);
-      setState("confirming");
+      if (isConnectionError(err)) {
+        const message = err instanceof Error ? err.message : "Something went wrong, please try again.";
+        setErrorMessage(message);
+        setState("confirming");
+        return;
+      }
+      setHintMessage(t("hint.sayAgain"));
+      setState("idle");
     }
   }, [playCue, roomNumber, t]);
 
@@ -98,14 +115,14 @@ function GuestPageContent() {
       setState("processing");
       void handleParseRequest(transcript);
     },
-    onError: (message) => {
+    onError: () => {
       if (state !== "listening" && state !== "processing") {
         return;
       }
 
       playCue("error");
-      setErrorMessage(message);
-      setState("confirming");
+      setHintMessage(t("hint.sayAgain"));
+      setState("idle");
     },
     onStopWithoutTranscript: () => {
       if (state === "listening" || state === "processing") {
@@ -176,6 +193,7 @@ function GuestPageContent() {
   function handleStartListening() {
     void primeAudio();
     setErrorMessage(null);
+    setHintMessage(null);
     setState("listening");
     playCue("listening");
     voice.start();
@@ -361,6 +379,10 @@ function GuestPageContent() {
   return (
     <div className="guest-theme dark min-h-screen bg-[var(--guest-bg)]">
       <LanguageToggle />
+      <VoiceHintToast
+        message={hintMessage}
+        onDismiss={() => setHintMessage(null)}
+      />
 
       {state === "setup" && (
         <SetupScreen

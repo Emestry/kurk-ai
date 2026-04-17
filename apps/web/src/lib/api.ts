@@ -75,6 +75,16 @@ export function getApiBaseUrl() {
   );
 }
 
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number,
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 async function parseJson<T>(response: Response): Promise<T> {
   const payload = (await response.json().catch(() => null)) as
     | { error?: string }
@@ -86,7 +96,7 @@ async function parseJson<T>(response: Response): Promise<T> {
       payload && typeof payload === "object" && "error" in payload
         ? payload.error
         : "Request failed";
-    throw new Error(message || "Request failed");
+    throw new ApiError(message || "Request failed", response.status);
   }
 
   return payload as T;
