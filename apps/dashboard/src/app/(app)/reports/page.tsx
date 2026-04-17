@@ -8,10 +8,8 @@ import { useMonthlyReportQuery } from "@/hooks/useMonthlyReportQuery";
 import { KpiRow } from "@/components/reports/KpiRow";
 import { RequestsByDayChart } from "@/components/reports/RequestsByDayChart";
 import { BusiestHoursChart } from "@/components/reports/BusiestHoursChart";
-import { CategoryDonut } from "@/components/reports/CategoryDonut";
 import { TopItemsBar } from "@/components/reports/TopItemsBar";
 import { ConsumptionTable } from "@/components/reports/ConsumptionTable";
-import { ReconciliationSummary } from "@/components/reports/ReconciliationSummary";
 
 /**
  * Renders the monthly reporting screen for staff analytics.
@@ -48,11 +46,9 @@ export default function ReportsPage() {
           <div className="grid gap-4 lg:grid-cols-2">
             <RequestsByDayChart data={data.requestsByDay} />
             <BusiestHoursChart data={data.requestsByHour} />
-            <CategoryDonut data={data.requestsByCategory} />
             <TopItemsBar data={data.consumption} />
           </div>
           <ConsumptionTable data={data.consumption} />
-          <ReconciliationSummary data={data.reconciliations} />
         </>
       )}
     </div>
