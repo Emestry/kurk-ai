@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useGuestAudio } from "@/hooks/useGuestAudio";
@@ -73,11 +74,25 @@ export function SetupScreen({
         onSubmit={handleSubmit}
         className="flex w-full max-w-sm flex-col items-center gap-8 rounded-3xl bg-[var(--guest-surface)] p-10"
       >
-        <div className="flex flex-col items-center gap-2">
-          <div className="h-16 w-16 rounded-2xl bg-[var(--guest-accent)] opacity-60" />
-          <span className="text-xl font-semibold text-[var(--guest-text)]">
-            Assistant
-          </span>
+        <div className="flex flex-col items-center gap-3">
+          <Image
+            src="/logo-highres.png"
+            alt="Kurk AI"
+            width={128}
+            height={128}
+            priority
+            unoptimized
+            className="h-20 w-20"
+          />
+          <Image
+            src="/text-highres.png"
+            alt="Kurk AI"
+            width={320}
+            height={64}
+            priority
+            unoptimized
+            className="h-7 w-auto"
+          />
         </div>
 
         <p className="text-sm text-[var(--guest-text-muted)]">

@@ -1,17 +1,36 @@
+import Image from "next/image";
 import { Tabs } from "./Tabs";
 import { ConnectionIndicator } from "./ConnectionIndicator";
 import { SoundToggle } from "./SoundToggle";
 
 /**
- * Sticky top navigation bar containing the brand wordmark, page tabs,
+ * Sticky top navigation bar containing the brand lockup, page tabs,
  * connection indicator and sound toggle.
  */
 export function TopBar() {
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur">
       <div className="flex items-center gap-6">
-        {/* TODO: replace wordmark with the real brand logo/text */}
-        <span className="text-sm font-semibold tracking-[0.25em]">BRAND</span>
+        <div className="flex items-center gap-2">
+          <Image
+            src="/logo-highres.png"
+            alt="Kurk AI"
+            width={32}
+            height={32}
+            priority
+            unoptimized
+            className="h-7 w-7"
+          />
+          <Image
+            src="/text-highres.png"
+            alt="Kurk AI"
+            width={120}
+            height={24}
+            priority
+            unoptimized
+            className="h-5 w-auto"
+          />
+        </div>
         <Tabs />
       </div>
       <div className="flex items-center gap-4">

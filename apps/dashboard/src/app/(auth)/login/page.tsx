@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Suspense, useState, FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "@/lib/auth-client";
@@ -83,10 +84,25 @@ export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-sm space-y-6">
-        <div className="space-y-1 text-center">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            Brand Staff
-          </h1>
+        <div className="flex flex-col items-center gap-3 text-center">
+          <Image
+            src="/logo-highres.png"
+            alt="Kurk AI"
+            width={96}
+            height={96}
+            priority
+            unoptimized
+            className="h-16 w-16"
+          />
+          <Image
+            src="/text-highres.png"
+            alt="Kurk AI"
+            width={240}
+            height={48}
+            priority
+            unoptimized
+            className="h-7 w-auto"
+          />
           <p className="text-sm text-muted-foreground">
             Sign in to your account to continue.
           </p>
