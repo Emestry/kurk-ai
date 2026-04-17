@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import type { ReactNode, RefObject } from "react";
 
 interface Props {
   title: string;
@@ -6,9 +6,17 @@ interface Props {
   children: ReactNode;
   className?: string;
   description?: string;
+  contentRef?: RefObject<HTMLDivElement | null>;
 }
 
-export function KanbanColumn({ title, count, children, className, description }: Props) {
+export function KanbanColumn({
+  title,
+  count,
+  children,
+  className,
+  description,
+  contentRef,
+}: Props) {
   return (
     <section className={`flex min-h-0 flex-1 flex-col gap-3 ${className ?? ""}`}>
       <header className="flex items-baseline justify-between px-1">
@@ -22,7 +30,9 @@ export function KanbanColumn({ title, count, children, className, description }:
         </div>
         <span className="text-xs text-muted-foreground">· {count}</span>
       </header>
-      <div className="flex-1 space-y-3 overflow-y-auto pr-1">{children}</div>
+      <div ref={contentRef} className="flex-1 space-y-3 overflow-y-auto pr-1">
+        {children}
+      </div>
     </section>
   );
 }

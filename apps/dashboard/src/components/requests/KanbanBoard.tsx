@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api";
 import { useRequestsQuery, useUpdateRequestMutation } from "@/hooks/useRequestsQuery";
@@ -25,6 +25,7 @@ export function KanbanBoard() {
   const updateMutation = useUpdateRequestMutation();
   const [modal, setModal] = useState<ModalState>({ kind: "none" });
   const [donePage, setDonePage] = useState(0);
+  const doneColumnRef = useRef<HTMLDivElement | null>(null);
   const DONE_PAGE_SIZE = 25;
 
   const grouped = useMemo(() => {
@@ -49,6 +50,11 @@ export function KanbanBoard() {
     donePage * DONE_PAGE_SIZE,
     (donePage + 1) * DONE_PAGE_SIZE,
   );
+
+  function handleDonePageChange(nextPage: number) {
+    setDonePage(nextPage);
+    doneColumnRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   async function markDelivered(request: GuestRequestDTO) {
     try {
@@ -98,6 +104,7 @@ export function KanbanBoard() {
         count={grouped.done.length}
         className="max-w-[24rem] flex-[0.9]"
         description="Resolved requests are paged and kept quieter so active work stays front-and-center."
+        contentRef={doneColumnRef}
       >
         {pagedDone.map((r) => (
           <RequestCard
@@ -119,7 +126,7 @@ export function KanbanBoard() {
                 size="sm"
                 variant="outline"
                 disabled={donePage === 0}
-                onClick={() => setDonePage((page) => page - 1)}
+                onClick={() => handleDonePageChange(donePage - 1)}
               >
                 Previous
               </Button>
@@ -127,7 +134,7 @@ export function KanbanBoard() {
                 size="sm"
                 variant="outline"
                 disabled={donePage + 1 >= donePageCount}
-                onClick={() => setDonePage((page) => page + 1)}
+                onClick={() => handleDonePageChange(donePage + 1)}
               >
                 Next
               </Button>
