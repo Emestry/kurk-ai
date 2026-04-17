@@ -44,4 +44,4 @@ RUN pnpm --filter api exec prisma generate
 RUN pnpm --filter api build
 WORKDIR /app/apps/api
 EXPOSE 3001
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/src/index.js"]

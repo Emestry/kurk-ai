@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc && tsc-alias",
-    "start": "node dist/index.js",
+    "start": "node dist/src/index.js",
     "lint": "tsc --noEmit",
     "test:inventory": "tsx --test src/testing/inventory-service.test.ts",
     "test:requests": "tsx --test src/testing/request-creation.test.ts",
