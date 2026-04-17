@@ -1,0 +1,393 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  admin
+  staff
+}
+
+enum RequestSource {
+  text
+  voice
+}
+
+enum RequestStatus {
+  received
+  in_progress
+  partially_delivered
+  delivered
+  rejected
+}
+
+enum RequestEventType {
+  created
+  status_changed
+  rejected
+  partially_delivered
+  delivered
+  note_added
+  eta_set
+}
+
+enum RequestActorType {
+  guest
+  staff
+  system
+}
+
+enum RequestCategory {
+  room_service
+  housekeeping
+  maintenance
+  reception
+}
+
+enum ReservationStatus {
+  active
+  released
+  finalized
+}
+
+enum InventoryMovementType {
+  reserve
+  release
+  deliver
+  restock
+  adjustment
+  stocktake
+}
+
+enum InventoryAdjustmentReason {
+  restock
+  manual_adjustment
+  damaged
+  theft
+  miscounted
+  supplier_error
+}
+
+enum StocktakeStatus {
+  open
+  finalized
+}
+
+enum StocktakeDiscrepancyReason {
+  damaged
+  theft
+  miscounted
+  supplier_error
+}
+
+model User {
+  id                String                  @id
+  name              String
+  email             String
+  emailVerified     Boolean                 @default(false)
+  image             String?
+  role              UserRole                @default(staff)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+  sessions          Session[]
+  accounts          Account[]
+  inventoryMovements InventoryMovement[]
+  stocktakeSessionsStarted StocktakeSession[] @relation("StocktakeStartedBy")
+  stocktakeSessionsFinalized StocktakeSession[] @relation("StocktakeFinalizedBy")
+  stocktakeReconciliations StocktakeReconciliation[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+model Room {
+  id                     String              @id @default(cuid())
+  number                 String              @unique
+  code                   String              @unique
+  accessToken            String              @unique
+  isActive               Boolean             @default(true)
+  pairingCode            String?
+  pairingCodeExpiresAt   DateTime?
+  createdAt              DateTime            @default(now())
+  updatedAt              DateTime            @updatedAt
+  requests               GuestRequest[]
+  events                 RequestEvent[]
+  devices                RoomDevice[]
+  deviceSessions         RoomDeviceSession[]
+
+  @@map("room")
+}
+
+model RoomDevice {
+  id               String              @id @default(cuid())
+  roomId           String
+  room             Room                @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  name             String
+  deviceFingerprint String             @unique
+  isActive         Boolean             @default(true)
+  lastSeenAt       DateTime?
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  sessions         RoomDeviceSession[]
+
+  @@index([roomId, isActive])
+  @@map("room_device")
+}
+
+model RoomDeviceSession {
+  id          String         @id @default(cuid())
+  roomId      String
+  room        Room           @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomDeviceId String
+  roomDevice  RoomDevice     @relation(fields: [roomDeviceId], references: [id], onDelete: Cascade)
+  token       String         @unique
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  requests    GuestRequest[]
+
+  @@index([roomId, revokedAt])
+  @@index([roomDeviceId, revokedAt])
+  @@map("room_device_session")
+}
+
+model InventoryItem {
+  id                String                 @id @default(cuid())
+  sku               String                 @unique
+  name              String
+  category          RequestCategory
+  unit              String
+  quantityInStock   Int
+  quantityReserved  Int                    @default(0)
+  lowStockThreshold Int                    @default(0)
+  isActive          Boolean                @default(true)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  requestItems      GuestRequestItem[]
+  reservations      InventoryReservation[]
+  movements         InventoryMovement[]
+  stocktakeLines    StocktakeLine[]
+  reconciliations   StocktakeReconciliation[]
+
+  @@index([isActive])
+  @@index([category, isActive])
+  @@map("inventory_item")
+}
+
+model GuestRequest {
+  id                  String                 @id @default(cuid())
+  roomId              String
+  room                Room                   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomDeviceSessionId String?
+  roomDeviceSession   RoomDeviceSession?     @relation(fields: [roomDeviceSessionId], references: [id], onDelete: SetNull)
+  source              RequestSource
+  rawText             String
+  normalizedText      String?
+  category            RequestCategory?
+  guestMessage        String?
+  staffNote           String?
+  etaMinutes          Int?
+  status              RequestStatus          @default(received)
+  rejectionReason     String?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  items               GuestRequestItem[]
+  events              RequestEvent[]
+  reservations        InventoryReservation[]
+  movements           InventoryMovement[]
+
+  @@index([roomId, status])
+  @@index([createdAt])
+  @@map("guest_request")
+}
+
+model GuestRequestItem {
+  id                  String                 @id @default(cuid())
+  requestId           String
+  request             GuestRequest           @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  inventoryItemId     String
+  inventoryItem       InventoryItem          @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  requestedQuantity   Int
+  reservedQuantity    Int                    @default(0)
+  deliveredQuantity   Int                    @default(0)
+  unavailableQuantity Int                    @default(0)
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  reservations        InventoryReservation[]
+  movements           InventoryMovement[]
+
+  @@unique([requestId, inventoryItemId])
+  @@map("guest_request_item")
+}
+
+model RequestEvent {
+  id         String           @id @default(cuid())
+  requestId  String
+  request    GuestRequest     @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  roomId     String
+  room       Room             @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  type       RequestEventType
+  actorType  RequestActorType
+  payload    Json?
+  createdAt  DateTime         @default(now())
+
+  @@index([requestId, createdAt])
+  @@index([roomId, createdAt])
+  @@map("request_event")
+}
+
+model InventoryReservation {
+  id              String                @id @default(cuid())
+  requestId       String
+  request         GuestRequest          @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestItemId   String
+  requestItem     GuestRequestItem      @relation(fields: [requestItemId], references: [id], onDelete: Cascade)
+  inventoryItemId String
+  inventoryItem   InventoryItem         @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  status          ReservationStatus     @default(active)
+  quantity        Int
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  movements       InventoryMovement[]
+
+  @@index([requestId, status])
+  @@index([inventoryItemId, status])
+  @@map("inventory_reservation")
+}
+
+model InventoryMovement {
+  id                  String                   @id @default(cuid())
+  inventoryItemId     String
+  inventoryItem       InventoryItem            @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  requestId           String?
+  request             GuestRequest?            @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  requestItemId       String?
+  requestItem         GuestRequestItem?        @relation(fields: [requestItemId], references: [id], onDelete: SetNull)
+  reservationId       String?
+  reservation         InventoryReservation?    @relation(fields: [reservationId], references: [id], onDelete: SetNull)
+  stocktakeSessionId  String?
+  stocktakeSession    StocktakeSession?        @relation(fields: [stocktakeSessionId], references: [id], onDelete: SetNull)
+  createdByUserId     String?
+  createdByUser       User?                    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  type                InventoryMovementType
+  reason              InventoryAdjustmentReason?
+  quantityDelta       Int
+  note                String?
+  createdAt           DateTime                 @default(now())
+
+  @@index([inventoryItemId, createdAt])
+  @@index([stocktakeSessionId])
+  @@map("inventory_movement")
+}
+
+model StocktakeSession {
+  id                 String                    @id @default(cuid())
+  status             StocktakeStatus          @default(open)
+  note               String?
+  startedByUserId    String?
+  startedByUser      User?                    @relation("StocktakeStartedBy", fields: [startedByUserId], references: [id], onDelete: SetNull)
+  finalizedByUserId  String?
+  finalizedByUser    User?                    @relation("StocktakeFinalizedBy", fields: [finalizedByUserId], references: [id], onDelete: SetNull)
+  createdAt          DateTime                 @default(now())
+  updatedAt          DateTime                 @updatedAt
+  finalizedAt        DateTime?
+  lines              StocktakeLine[]
+  movements          InventoryMovement[]
+  reconciliations    StocktakeReconciliation[]
+
+  @@index([status, createdAt])
+  @@map("stocktake_session")
+}
+
+model StocktakeLine {
+  id                  String           @id @default(cuid())
+  sessionId           String
+  session             StocktakeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  inventoryItemId     String
+  inventoryItem       InventoryItem    @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  expectedQuantity    Int
+  physicalCount       Int?
+  discrepancyQuantity Int?
+  reason              StocktakeDiscrepancyReason?
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  reconciliation      StocktakeReconciliation?
+
+  @@unique([sessionId, inventoryItemId])
+  @@index([inventoryItemId])
+  @@map("stocktake_line")
+}
+
+model StocktakeReconciliation {
+  id                  String                    @id @default(cuid())
+  sessionId           String
+  session             StocktakeSession          @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  stocktakeLineId     String                    @unique
+  stocktakeLine       StocktakeLine             @relation(fields: [stocktakeLineId], references: [id], onDelete: Cascade)
+  inventoryItemId     String
+  inventoryItem       InventoryItem             @relation(fields: [inventoryItemId], references: [id], onDelete: Restrict)
+  expectedQuantity    Int
+  physicalCount       Int
+  discrepancyQuantity Int
+  reason              StocktakeDiscrepancyReason
+  createdByUserId     String?
+  createdByUser       User?                     @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt           DateTime                  @default(now())
+
+  @@index([sessionId, createdAt])
+  @@index([inventoryItemId, createdAt])
+  @@map("stocktake_reconciliation")
+}
