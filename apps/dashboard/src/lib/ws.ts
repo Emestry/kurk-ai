@@ -36,10 +36,13 @@ export function createWsManager(options: CreateWsOptions): WsManager {
 
   function scheduleReconnect() {
     if (closedByUser) return;
+    // Always mark the UI as reconnecting so the visibility handler can pick
+    // the socket up again when the tab returns to the foreground — otherwise
+    // a close while hidden leaves `state` stuck at "open" and we never retry.
+    setState("reconnecting");
     if (document.hidden) return;
     const delay = Math.min(30_000, 1_000 * 2 ** attempt);
     attempt += 1;
-    setState("reconnecting");
     reconnectTimer = setTimeout(connect, delay);
   }
 
@@ -88,7 +91,15 @@ export function createWsManager(options: CreateWsOptions): WsManager {
         clearTimeout(reconnectTimer);
         reconnectTimer = null;
       }
-    } else if (state !== "open") {
+      return;
+    }
+    // When the tab returns to the foreground, try again regardless of the
+    // cached `state` — it may be stale if a close fired while we were hidden.
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+        reconnectTimer = null;
+      }
       attempt = 0;
       connect();
     }
