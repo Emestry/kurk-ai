@@ -48,6 +48,7 @@ function GuestPageContent() {
   const [parsedResult, setParsedResult] = useState<ParseRequestResponse | null>(null);
   const [lastTranscript, setLastTranscript] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const hasArmedWakeWordRef = useRef(false);
   const requestStatusesRef = useRef<Map<string, RequestStatus>>(new Map());
 
@@ -172,6 +173,9 @@ function GuestPageContent() {
 
   async function handleConfirm() {
     if (!parsedResult || !roomNumber) return;
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
 
     try {
       const newRequest = await createRequest(
@@ -182,15 +186,16 @@ function GuestPageContent() {
       );
       playCue("success");
       setRequests((prev) => [newRequest, ...prev.filter((entry) => entry.id !== newRequest.id)]);
+      setParsedResult(null);
+      setLastTranscript("");
+      setState("idle");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create request.";
       playCue("error");
       setErrorMessage(message);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setParsedResult(null);
-    setLastTranscript("");
-    setState("idle");
   }
 
   function handleCancel() {
@@ -298,6 +303,7 @@ function GuestPageContent() {
               transcript={lastTranscript}
               onConfirm={handleConfirm}
               onCancel={handleCancel}
+              isSubmitting={isSubmitting}
             />
           )}
 

@@ -10,6 +10,7 @@ interface ConfirmPopupProps {
   transcript: string;
   onConfirm: () => void;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
 interface ErrorPopupProps {
@@ -22,6 +23,7 @@ export function ConfirmPopup({
   transcript,
   onConfirm,
   onCancel,
+  isSubmitting = false,
 }: ConfirmPopupProps) {
   const { language, t } = useGuestLanguage();
   const translatedTexts = useTranslatedTexts(
@@ -66,6 +68,7 @@ export function ConfirmPopup({
             variant="outline"
             className="flex-1 border-[var(--guest-text-dim)]/20 bg-transparent text-[var(--guest-text-muted)] hover:bg-[var(--guest-surface-hover)]"
             size="lg"
+            disabled={isSubmitting}
           >
             {t("confirm.cancel")}
           </Button>
@@ -73,6 +76,7 @@ export function ConfirmPopup({
             onClick={onConfirm}
             className="flex-1 bg-[var(--guest-accent)] text-[var(--guest-accent-foreground)] hover:opacity-90"
             size="lg"
+            disabled={isSubmitting}
           >
             {t("confirm.confirm")}
           </Button>
