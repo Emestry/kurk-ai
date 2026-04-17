@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Tabs } from "./Tabs";
+import { Tabs, TabsMenu } from "./Tabs";
 import { ConnectionIndicator } from "./ConnectionIndicator";
 import { SoundToggle } from "./SoundToggle";
 
@@ -36,6 +36,7 @@ export function TopBar() {
       <div className="flex items-center gap-4">
         <ConnectionIndicator />
         <SoundToggle />
+        <TabsMenu />
       </div>
     </header>
   );
