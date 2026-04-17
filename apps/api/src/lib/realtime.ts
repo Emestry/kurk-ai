@@ -53,6 +53,12 @@ class RealtimeBus {
 
 export const realtimeBus = new RealtimeBus();
 
+/**
+ * Broadcasts a realtime event to in-process listeners and WebSocket clients.
+ *
+ * @param event - Event payload describing the room, request, or inventory change.
+ * @returns Nothing.
+ */
 export function publishRealtimeEvent(event: RealtimeEvent) {
   realtimeBus.publish(event);
   publishWebsocketMessage({
@@ -65,6 +71,13 @@ export function publishRealtimeEvent(event: RealtimeEvent) {
   });
 }
 
+/**
+ * Registers a realtime subscription filtered to the events the caller cares about.
+ *
+ * @param filter - Predicate that decides whether a listener should receive an event.
+ * @param listener - Callback invoked for each matching event.
+ * @returns An unsubscribe function that removes the subscription.
+ */
 export function subscribeToRealtimeEvents(
   filter: RealtimeFilter,
   listener: RealtimeListener,

@@ -13,6 +13,11 @@ import { TopItemsBar } from "@/components/reports/TopItemsBar";
 import { ConsumptionTable } from "@/components/reports/ConsumptionTable";
 import { ReconciliationSummary } from "@/components/reports/ReconciliationSummary";
 
+/**
+ * Renders the monthly reporting screen for staff analytics.
+ *
+ * @returns The report picker, KPI summary, charts, and tables.
+ */
 export default function ReportsPage() {
   const [month, setMonth] = useState(format(startOfMonth(new Date()), "yyyy-MM"));
   const { data, isLoading } = useMonthlyReportQuery(month);
@@ -54,6 +59,12 @@ export default function ReportsPage() {
   );
 }
 
+/**
+ * Serializes the currently loaded report into CSV and triggers a browser download.
+ *
+ * @param data - Monthly report data to export.
+ * @returns Nothing.
+ */
 function exportCsv(data: import("@/lib/types").MonthlyReportDTO) {
   const rows = [
     ["item", "category", "unitsRequested", "unitsDelivered", "unitsUnfulfilled", "requests"],

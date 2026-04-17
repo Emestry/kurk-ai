@@ -17,6 +17,13 @@ import { useUpdateRequestMutation } from "@/hooks/useRequestsQuery";
 import { combine, validateMaxLength, validateRequired } from "@/lib/validation";
 import type { GuestRequestDTO } from "@/lib/types";
 
+/**
+ * Captures a guest-visible rejection reason before closing a request.
+ *
+ * @param request - Request being rejected.
+ * @param onClose - Callback used to dismiss the modal.
+ * @returns A rejection dialog.
+ */
 export function RejectModal({
   request,
   onClose,

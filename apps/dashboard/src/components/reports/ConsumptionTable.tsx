@@ -13,6 +13,12 @@ import type { MonthlyReportDTO } from "@/lib/types";
 
 type SortKey = keyof MonthlyReportDTO["consumption"][number];
 
+/**
+ * Displays sortable item-consumption totals for the selected month.
+ *
+ * @param data - Consumption rows from the monthly report.
+ * @returns A sortable report table.
+ */
 export function ConsumptionTable({
   data,
 }: {

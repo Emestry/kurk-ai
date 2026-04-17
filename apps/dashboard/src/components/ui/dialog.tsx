@@ -7,22 +7,32 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
+/** Hosts dialog open state and context. */
 function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
+/** Opens the nearest dialog when activated. */
 function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
 }
 
+/** Portals dialog content outside the current stacking context. */
 function DialogPortal({ ...props }: DialogPrimitive.Portal.Props) {
   return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
 }
 
+/** Closes the nearest dialog when activated. */
 function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
   return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
 }
 
+/**
+ * Renders the dimmed backdrop behind an open dialog.
+ *
+ * @param className - Additional class overrides.
+ * @returns A dialog backdrop.
+ */
 function DialogOverlay({
   className,
   ...props
@@ -39,6 +49,14 @@ function DialogOverlay({
   )
 }
 
+/**
+ * Renders the dialog panel and optional close button.
+ *
+ * @param className - Additional class overrides.
+ * @param children - Dialog body content.
+ * @param showCloseButton - Whether to render the default close control.
+ * @returns A dialog popup.
+ */
 function DialogContent({
   className,
   children,
@@ -80,6 +98,12 @@ function DialogContent({
   )
 }
 
+/**
+ * Renders the heading section for dialog content.
+ *
+ * @param className - Additional class overrides.
+ * @returns A dialog header container.
+ */
 function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -90,6 +114,14 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * Renders the footer action row for a dialog.
+ *
+ * @param className - Additional class overrides.
+ * @param showCloseButton - Whether to render a default close action.
+ * @param children - Dialog actions.
+ * @returns A dialog footer container.
+ */
 function DialogFooter({
   className,
   showCloseButton = false,
@@ -117,6 +149,12 @@ function DialogFooter({
   )
 }
 
+/**
+ * Renders the accessible title for a dialog.
+ *
+ * @param className - Additional class overrides.
+ * @returns A dialog title primitive.
+ */
 function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   return (
     <DialogPrimitive.Title
@@ -130,6 +168,12 @@ function DialogTitle({ className, ...props }: DialogPrimitive.Title.Props) {
   )
 }
 
+/**
+ * Renders supporting descriptive copy for a dialog.
+ *
+ * @param className - Additional class overrides.
+ * @returns A dialog description primitive.
+ */
 function DialogDescription({
   className,
   ...props

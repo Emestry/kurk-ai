@@ -43,6 +43,13 @@ interface Props {
   onClose: () => void;
 }
 
+/**
+ * Creates a new inventory item or edits metadata for an existing one.
+ *
+ * @param item - Existing item when editing, otherwise omitted for create mode.
+ * @param onClose - Callback used to dismiss the modal.
+ * @returns An item create/edit dialog.
+ */
 export function ItemFormModal({ item, onClose }: Props) {
   const isEdit = Boolean(item);
   const [sku, setSku] = useState(() => item?.sku ?? `INV-${Date.now().toString().slice(-4)}`);

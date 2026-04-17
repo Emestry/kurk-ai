@@ -8,6 +8,12 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Narrows unknown errors to the API-specific error type used by the backend.
+ *
+ * @param error - Value caught in an exception handler.
+ * @returns True when the value is an ApiError instance.
+ */
 export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError;
 }

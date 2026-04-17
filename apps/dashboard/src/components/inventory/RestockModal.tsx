@@ -18,6 +18,13 @@ import { useRestockMutation } from "@/hooks/useInventoryQuery";
 import { combine, validateMaxLength, validatePositiveInt } from "@/lib/validation";
 import type { InventoryItemDTO } from "@/lib/types";
 
+/**
+ * Records a physical restock event for one inventory item.
+ *
+ * @param item - Inventory item being restocked.
+ * @param onClose - Callback used to dismiss the modal.
+ * @returns A restock dialog.
+ */
 export function RestockModal({
   item,
   onClose,

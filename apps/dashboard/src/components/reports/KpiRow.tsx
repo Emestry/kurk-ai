@@ -7,6 +7,12 @@ function fmtSecs(s: number | null) {
   return `${(s / 60).toFixed(1)}m`;
 }
 
+/**
+ * Renders the headline KPI cards for the monthly report.
+ *
+ * @param data - Monthly report aggregate metrics.
+ * @returns A responsive KPI grid.
+ */
 export function KpiRow({ data }: { data: MonthlyReportDTO }) {
   return (
     <div className="grid gap-3 sm:grid-cols-4">

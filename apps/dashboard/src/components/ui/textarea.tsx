@@ -2,6 +2,12 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Provides the shared styled textarea used across dashboard forms.
+ *
+ * @param className - Additional class overrides.
+ * @returns A styled textarea element.
+ */
 function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea

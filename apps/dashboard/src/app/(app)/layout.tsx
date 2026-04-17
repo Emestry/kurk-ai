@@ -14,6 +14,12 @@ function Bridge() {
   return null;
 }
 
+/**
+ * Provides the authenticated dashboard shell around all in-app staff routes.
+ *
+ * @param children - Active staff page content.
+ * @returns The live-events-aware dashboard layout.
+ */
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <LiveEventsProvider>

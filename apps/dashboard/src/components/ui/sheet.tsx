@@ -7,22 +7,32 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
+/** Hosts sheet open state and context for side-drawer flows. */
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
 }
 
+/** Opens the nearest sheet when activated. */
 function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
   return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
 }
 
+/** Closes the nearest sheet when activated. */
 function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
   return <SheetPrimitive.Close data-slot="sheet-close" {...props} />
 }
 
+/** Portals sheet content outside normal DOM stacking contexts. */
 function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
   return <SheetPrimitive.Portal data-slot="sheet-portal" {...props} />
 }
 
+/**
+ * Renders the dimmed backdrop behind an open sheet.
+ *
+ * @param className - Additional class overrides.
+ * @returns A sheet overlay primitive.
+ */
 function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   return (
     <SheetPrimitive.Backdrop
@@ -36,6 +46,15 @@ function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   )
 }
 
+/**
+ * Renders the main sheet panel and optional close affordance.
+ *
+ * @param className - Additional class overrides.
+ * @param children - Drawer content.
+ * @param side - Edge the sheet slides in from.
+ * @param showCloseButton - Whether to show the default close button.
+ * @returns A styled sheet panel.
+ */
 function SheetContent({
   className,
   children,
@@ -80,6 +99,12 @@ function SheetContent({
   )
 }
 
+/**
+ * Renders the heading section for sheet content.
+ *
+ * @param className - Additional class overrides.
+ * @returns A sheet header container.
+ */
 function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -90,6 +115,12 @@ function SheetHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * Renders the footer action area for a sheet.
+ *
+ * @param className - Additional class overrides.
+ * @returns A sheet footer container.
+ */
 function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -100,6 +131,12 @@ function SheetFooter({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * Renders the accessible title for a sheet.
+ *
+ * @param className - Additional class overrides.
+ * @returns A sheet title primitive.
+ */
 function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   return (
     <SheetPrimitive.Title
@@ -113,6 +150,12 @@ function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   )
 }
 
+/**
+ * Renders supporting descriptive text for a sheet.
+ *
+ * @param className - Additional class overrides.
+ * @returns A sheet description primitive.
+ */
 function SheetDescription({
   className,
   ...props

@@ -10,6 +10,12 @@ import {
 } from "recharts";
 import type { MonthlyReportDTO } from "@/lib/types";
 
+/**
+ * Summarizes stocktake reconciliation outcomes for the selected month.
+ *
+ * @param data - Reconciliation sessions included in the report.
+ * @returns Aggregate reconciliation metrics plus per-session links.
+ */
 export function ReconciliationSummary({
   data,
 }: {

@@ -18,6 +18,12 @@ const TONE: Record<RequestStatus, string> = {
   rejected: "bg-red-500/20 text-red-300 border-red-500/40",
 };
 
+/**
+ * Renders the shared status pill used across staff request surfaces.
+ *
+ * @param status - Current request status to label and color.
+ * @returns A badge with the matching copy and tone.
+ */
 export function StatusBadge({ status }: { status: RequestStatus }) {
   return (
     <Badge variant="outline" className={TONE[status]}>

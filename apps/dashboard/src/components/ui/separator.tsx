@@ -4,6 +4,13 @@ import { Separator as SeparatorPrimitive } from "@base-ui/react/separator"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Draws a horizontal or vertical separator with shared dashboard styling.
+ *
+ * @param className - Additional class overrides.
+ * @param orientation - Separator direction.
+ * @returns A styled separator primitive.
+ */
 function Separator({
   className,
   orientation = "horizontal",

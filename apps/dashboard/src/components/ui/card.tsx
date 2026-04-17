@@ -2,6 +2,13 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Wraps content in the dashboard's shared card shell.
+ *
+ * @param className - Additional class overrides.
+ * @param size - Spacing preset for the card.
+ * @returns A styled card container.
+ */
 function Card({
   className,
   size = "default",
@@ -20,6 +27,12 @@ function Card({
   )
 }
 
+/**
+ * Renders the heading area for a card.
+ *
+ * @param className - Additional class overrides.
+ * @returns A card header container.
+ */
 function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -33,6 +46,12 @@ function CardHeader({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * Renders the primary title text for a card.
+ *
+ * @param className - Additional class overrides.
+ * @returns A card title container.
+ */
 function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -46,6 +65,12 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * Renders muted supporting text beneath a card title.
+ *
+ * @param className - Additional class overrides.
+ * @returns A card description container.
+ */
 function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -56,6 +81,12 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * Positions secondary actions in a card header.
+ *
+ * @param className - Additional class overrides.
+ * @returns A card action container.
+ */
 function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -69,6 +100,12 @@ function CardAction({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * Wraps the main body content of a card.
+ *
+ * @param className - Additional class overrides.
+ * @returns A card content container.
+ */
 function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
@@ -79,6 +116,12 @@ function CardContent({ className, ...props }: React.ComponentProps<"div">) {
   )
 }
 
+/**
+ * Renders the footer action row for a card.
+ *
+ * @param className - Additional class overrides.
+ * @returns A card footer container.
+ */
 function CardFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div

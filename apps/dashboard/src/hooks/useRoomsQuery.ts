@@ -56,6 +56,11 @@ export function mapRoom(raw: unknown): RoomDTO {
   };
 }
 
+/**
+ * Fetches the room list used by the dashboard room management view.
+ *
+ * @returns A React Query result containing normalized room data.
+ */
 export function useRoomsQuery() {
   return useQuery<RoomDTO[]>({
     queryKey: queryKeys.rooms.list(),
@@ -67,6 +72,11 @@ export function useRoomsQuery() {
   });
 }
 
+/**
+ * Creates the mutation that revokes an active room device session.
+ *
+ * @returns A React Query mutation that disconnects a tablet and refreshes rooms.
+ */
 export function useRevokeSessionMutation() {
   const qc = useQueryClient();
   return useMutation<void, Error, { sessionId: string }>({
@@ -86,6 +96,11 @@ export interface IssuePairingCodeResponse {
   expiresAt: string;
 }
 
+/**
+ * Creates the mutation that hides old request history for a room in the guest UI.
+ *
+ * @returns A React Query mutation that broadcasts a room history reset event.
+ */
 export function useResetRoomHistoryMutation() {
   return useMutation<void, Error, { roomId: string }>({
     mutationFn: ({ roomId }) =>
@@ -95,6 +110,11 @@ export function useResetRoomHistoryMutation() {
   });
 }
 
+/**
+ * Creates the mutation used to issue a one-time room pairing code.
+ *
+ * @returns A React Query mutation that refreshes the room list on success.
+ */
 export function useIssuePairingCodeMutation() {
   const qc = useQueryClient();
   return useMutation<IssuePairingCodeResponse, Error, { roomId: string }>({
@@ -109,6 +129,11 @@ export function useIssuePairingCodeMutation() {
   });
 }
 
+/**
+ * Creates the mutation used to disable an unused room pairing code.
+ *
+ * @returns A React Query mutation that refreshes the room list on success.
+ */
 export function useRevokePairingCodeMutation() {
   const qc = useQueryClient();
   return useMutation<void, Error, { roomId: string }>({

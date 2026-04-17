@@ -6,6 +6,9 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
+/**
+ * Represents an API failure returned by the staff backend.
+ */
 export class ApiError extends Error {
   /**
    * @param message - Human-readable error text.

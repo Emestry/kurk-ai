@@ -68,6 +68,11 @@ export interface DeviceSessionResponse {
 
 const DEFAULT_API_BASE_URL = "http://localhost:3001";
 
+/**
+ * Resolves the guest app API base URL from environment configuration.
+ *
+ * @returns The normalized base URL used for guest-facing API requests.
+ */
 export function getApiBaseUrl() {
   return (
     process.env.NEXT_PUBLIC_API_BASE_URL?.trim().replace(/\/+$/, "") ||
@@ -119,6 +124,12 @@ export async function createDeviceSession(input: {
   return parseJson<DeviceSessionResponse>(response);
 }
 
+/**
+ * Fetches the public inventory catalog for guest-side request previews.
+ *
+ * @returns Inventory items that guests may request.
+ * @throws ApiError when the API returns a non-2xx response.
+ */
 export async function getInventoryCatalog() {
   const response = await fetch(`${getApiBaseUrl()}/guest/inventory/catalog`, {
     cache: "no-store",
@@ -127,6 +138,13 @@ export async function getInventoryCatalog() {
   return parseJson<{ items: InventoryItemSummary[] }>(response);
 }
 
+/**
+ * Fetches the currently active request for the paired guest tablet.
+ *
+ * @param roomSessionToken - Auth token for the current room device session.
+ * @returns The room context and current request summary, if one exists.
+ * @throws ApiError when the API rejects the request.
+ */
 export async function getCurrentRequest(roomSessionToken: string) {
   const response = await fetch(`${getApiBaseUrl()}/guest/requests/current`, {
     headers: {
@@ -140,6 +158,13 @@ export async function getCurrentRequest(roomSessionToken: string) {
   );
 }
 
+/**
+ * Fetches recent request history for the paired guest tablet.
+ *
+ * @param roomSessionToken - Auth token for the current room device session.
+ * @returns Room context plus recent request history entries.
+ * @throws ApiError when the API rejects the request.
+ */
 export async function getRequestHistory(roomSessionToken: string) {
   const response = await fetch(`${getApiBaseUrl()}/guest/requests/history?limit=10`, {
     headers: {
@@ -153,6 +178,13 @@ export async function getRequestHistory(roomSessionToken: string) {
   );
 }
 
+/**
+ * Creates a guest request directly against the guest API.
+ *
+ * @param input - Room session token plus raw request text and optional item ids.
+ * @returns The created request summary.
+ * @throws ApiError when the API rejects the request.
+ */
 export async function submitGuestRequest(input: {
   roomSessionToken: string;
   source: "text" | "voice";
@@ -190,6 +222,13 @@ export interface AvailabilityPreview {
   anyAvailable: boolean;
 }
 
+/**
+ * Checks whether the requested inventory items are fully or partially available.
+ *
+ * @param input - Inventory item ids and requested quantities.
+ * @returns Per-line availability plus convenience booleans for the UI.
+ * @throws ApiError when the API rejects the preview request.
+ */
 export async function previewGuestRequest(input: {
   items: Array<{ inventoryItemId: string; quantity: number }>;
 }): Promise<AvailabilityPreview> {
@@ -202,6 +241,13 @@ export async function previewGuestRequest(input: {
   return parseJson<AvailabilityPreview>(response);
 }
 
+/**
+ * Uploads recorded guest audio for server-side transcription.
+ *
+ * @param input - Audio blob and optional filename metadata.
+ * @returns The transcribed text returned by the API.
+ * @throws ApiError when the API rejects the transcription request.
+ */
 export async function transcribeGuestAudio(input: {
   audio: Blob;
   fileName?: string;
@@ -250,11 +296,22 @@ export function getHistoryHiddenBefore(): string | null {
   return window.localStorage.getItem(HISTORY_HIDDEN_BEFORE_KEY);
 }
 
+/**
+ * Persists the history reset timestamp used to hide older guest requests.
+ *
+ * @param iso - ISO timestamp representing the start of visible history.
+ * @returns Nothing.
+ */
 export function setHistoryHiddenBefore(iso: string) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(HISTORY_HIDDEN_BEFORE_KEY, iso);
 }
 
+/**
+ * Clears the guest history reset marker from local storage.
+ *
+ * @returns Nothing.
+ */
 export function clearHistoryHiddenBefore() {
   if (typeof window === "undefined") return;
   window.localStorage.removeItem(HISTORY_HIDDEN_BEFORE_KEY);
@@ -303,6 +360,11 @@ export function getStoredSession(): DeviceSessionResponse | null {
   }
 }
 
+/**
+ * Removes the stored guest device session from local storage.
+ *
+ * @returns Nothing.
+ */
 export function clearSession() {
   if (typeof window === "undefined") {
     return;
@@ -311,6 +373,13 @@ export function clearSession() {
   window.localStorage.removeItem(SESSION_STORAGE_KEY);
 }
 
+/**
+ * Resolves the room session token used by legacy guest request helpers.
+ *
+ * @param roomNumber - Room number expected to match the stored device session.
+ * @returns The active room session token for the room.
+ * @throws Error when the tablet is not paired for the given room.
+ */
 export async function ensureLegacyRoomSession(roomNumber: string) {
   // Prefer the session created by SetupScreen (paired with a staff-issued code).
   const stored = getStoredSession();
@@ -389,6 +458,13 @@ export async function createRequest(
   return mapSummaryToLegacyRequest(created);
 }
 
+/**
+ * Fetches recent room requests and maps them into the guest UI model.
+ *
+ * @param room - Room number whose history should be fetched.
+ * @returns Guest request cards for the room.
+ * @throws ApiError when the API rejects the request.
+ */
 export async function fetchRoomRequests(room: string): Promise<GuestRequest[]> {
   const roomSessionToken = await ensureLegacyRoomSession(room);
   const history = await getRequestHistory(roomSessionToken);

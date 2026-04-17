@@ -3,6 +3,13 @@ import { Input as InputPrimitive } from "@base-ui/react/input"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Provides the shared styled text input used across staff forms.
+ *
+ * @param className - Additional class overrides.
+ * @param type - Native input type.
+ * @returns A styled input primitive.
+ */
 function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
     <InputPrimitive

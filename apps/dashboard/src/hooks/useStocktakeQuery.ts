@@ -51,6 +51,11 @@ export function mapStocktakeSession(raw: unknown): StocktakeSessionDTO {
   };
 }
 
+/**
+ * Fetches every stocktake session for the staff stocktake landing page.
+ *
+ * @returns A TanStack Query result containing normalized stocktake sessions.
+ */
 export function useStocktakeListQuery() {
   return useQuery<StocktakeSessionDTO[]>({
     queryKey: queryKeys.stocktake.list(),
@@ -67,6 +72,12 @@ export function useStocktakeListQuery() {
   });
 }
 
+/**
+ * Fetches one stocktake session with line details when a session id is present.
+ *
+ * @param id - Stocktake session id or `null` while the route param is unresolved.
+ * @returns A TanStack Query result for the requested stocktake session.
+ */
 export function useStocktakeDetailQuery(id: string | null) {
   return useQuery<StocktakeSessionDTO>({
     enabled: Boolean(id),
@@ -78,6 +89,11 @@ export function useStocktakeDetailQuery(id: string | null) {
   });
 }
 
+/**
+ * Starts a new stocktake session and inserts it into the cached session list.
+ *
+ * @returns A mutation for creating a stocktake session.
+ */
 export function useStartStocktakeMutation() {
   const qc = useQueryClient();
   return useMutation<StocktakeSessionDTO, Error, void>({
@@ -102,6 +118,12 @@ interface UpsertLinesInput {
     reason?: StocktakeDiscrepancyReason;
   }>;
 }
+
+/**
+ * Saves physical counts and discrepancy reasons for one stocktake session.
+ *
+ * @returns A mutation that updates cached stocktake detail data after save.
+ */
 export function useUpsertLinesMutation() {
   const qc = useQueryClient();
   return useMutation<StocktakeSessionDTO, Error, UpsertLinesInput>({
@@ -118,6 +140,11 @@ export function useUpsertLinesMutation() {
   });
 }
 
+/**
+ * Finalizes a stocktake session and refreshes dependent inventory/report caches.
+ *
+ * @returns A mutation for finalizing a stocktake session.
+ */
 export function useFinalizeStocktakeMutation() {
   const qc = useQueryClient();
   return useMutation<StocktakeSessionDTO, Error, { sessionId: string }>({

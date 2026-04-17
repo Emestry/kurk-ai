@@ -14,6 +14,13 @@ interface AppOptions {
   adminAuthMiddleware?: MiddlewareHandler<HonoEnv>;
 }
 
+/**
+ * Builds the API application with shared middleware, error handling, and routes.
+ *
+ * @param options - Optional auth middleware overrides used mainly by tests.
+ * @returns A configured Hono application instance ready to mount on the server.
+ * @throws Error when environment configuration cannot be loaded.
+ */
 export function createApp(options: AppOptions = {}) {
   const env = getEnv();
   const app = new Hono();

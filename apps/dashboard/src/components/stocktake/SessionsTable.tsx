@@ -19,6 +19,11 @@ import {
   useStocktakeListQuery,
 } from "@/hooks/useStocktakeQuery";
 
+/**
+ * Lists stocktake sessions and offers a shortcut to start or resume one.
+ *
+ * @returns The stocktake sessions table.
+ */
 export function SessionsTable() {
   const router = useRouter();
   const { data, isLoading } = useStocktakeListQuery();

@@ -122,6 +122,12 @@ function createStatusInput(
   };
 }
 
+/**
+ * Builds the authenticated staff route group for requests, inventory, reports, and stocktakes.
+ *
+ * @param options - Optional auth middleware override, primarily for tests.
+ * @returns A Hono router mounted under `/staff`.
+ */
 export function createStaffRoutes(options: StaffRouteOptions = {}) {
   const staff = new Hono<HonoEnv>();
   const requireStaffAuth = options.auth ?? authMiddleware;

@@ -27,6 +27,14 @@ const badgeVariants = cva(
   }
 )
 
+/**
+ * Renders a compact status or metadata pill with variant styling.
+ *
+ * @param className - Additional class overrides.
+ * @param variant - Visual treatment variant for the badge.
+ * @param render - Optional custom render target for Base UI.
+ * @returns A styled badge element.
+ */
 function Badge({
   className,
   variant = "default",

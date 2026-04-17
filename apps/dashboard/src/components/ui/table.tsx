@@ -4,6 +4,12 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Wraps a table in the shared responsive container used by dashboard lists.
+ *
+ * @param className - Additional class overrides.
+ * @returns A styled table wrapper and table element.
+ */
 function Table({ className, ...props }: React.ComponentProps<"table">) {
   return (
     <div
@@ -19,6 +25,12 @@ function Table({ className, ...props }: React.ComponentProps<"table">) {
   )
 }
 
+/**
+ * Renders the table header section.
+ *
+ * @param className - Additional class overrides.
+ * @returns A styled table header element.
+ */
 function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   return (
     <thead
@@ -29,6 +41,12 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
   )
 }
 
+/**
+ * Renders the table body section.
+ *
+ * @param className - Additional class overrides.
+ * @returns A styled table body element.
+ */
 function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   return (
     <tbody
@@ -39,6 +57,12 @@ function TableBody({ className, ...props }: React.ComponentProps<"tbody">) {
   )
 }
 
+/**
+ * Renders the summary/footer section for a table.
+ *
+ * @param className - Additional class overrides.
+ * @returns A styled table footer element.
+ */
 function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   return (
     <tfoot
@@ -52,6 +76,12 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
   )
 }
 
+/**
+ * Renders one table row with shared hover and selection styles.
+ *
+ * @param className - Additional class overrides.
+ * @returns A styled table row.
+ */
 function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   return (
     <tr
@@ -65,6 +95,12 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
   )
 }
 
+/**
+ * Renders one table header cell.
+ *
+ * @param className - Additional class overrides.
+ * @returns A styled table header cell.
+ */
 function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   return (
     <th
@@ -78,6 +114,12 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
   )
 }
 
+/**
+ * Renders one table data cell.
+ *
+ * @param className - Additional class overrides.
+ * @returns A styled table cell.
+ */
 function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   return (
     <td
@@ -91,6 +133,12 @@ function TableCell({ className, ...props }: React.ComponentProps<"td">) {
   )
 }
 
+/**
+ * Renders caption text beneath a table.
+ *
+ * @param className - Additional class overrides.
+ * @returns A styled table caption.
+ */
 function TableCaption({
   className,
   ...props

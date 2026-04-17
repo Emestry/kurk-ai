@@ -27,6 +27,13 @@ const PHYSICAL_TYPES = new Set<InventoryMovementType>([
   "stocktake",
 ]);
 
+/**
+ * Shows reservation context and stock movements for one inventory item.
+ *
+ * @param item - Inventory item currently being inspected.
+ * @param onClose - Callback used to dismiss the drawer.
+ * @returns An inventory detail drawer.
+ */
 export function ItemDrawer({
   item,
   onClose,

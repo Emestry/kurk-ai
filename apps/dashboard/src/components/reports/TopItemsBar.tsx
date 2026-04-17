@@ -10,6 +10,12 @@ import {
 } from "recharts";
 import type { MonthlyReportDTO } from "@/lib/types";
 
+/**
+ * Highlights the most delivered inventory items in the selected month.
+ *
+ * @param data - Consumption rows used to derive the top items.
+ * @returns A horizontal bar chart card.
+ */
 export function TopItemsBar({
   data,
 }: {

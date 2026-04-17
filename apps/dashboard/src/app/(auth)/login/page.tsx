@@ -80,6 +80,11 @@ function LoginForm() {
   );
 }
 
+/**
+ * Renders the staff login screen.
+ *
+ * @returns The branded authentication page and login form.
+ */
 export default function LoginPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4">

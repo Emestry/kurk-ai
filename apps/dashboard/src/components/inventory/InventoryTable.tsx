@@ -44,6 +44,11 @@ type Modal =
   | { kind: "add" }
   | { kind: "drawer"; item: InventoryItemDTO };
 
+/**
+ * Renders the inventory workspace with filters, item actions, and modals.
+ *
+ * @returns The staff inventory table and related dialogs.
+ */
 export function InventoryTable() {
   const { data } = useInventoryQuery();
   const { data: requests } = useRequestsQuery();

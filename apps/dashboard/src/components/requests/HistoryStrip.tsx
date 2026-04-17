@@ -17,6 +17,11 @@ import { useRequestsQuery } from "@/hooks/useRequestsQuery";
 
 const PAGE_SIZE = 50;
 
+/**
+ * Shows the searchable historical request table beneath the main board.
+ *
+ * @returns A collapsible request-history strip.
+ */
 export function HistoryStrip() {
   const { data } = useRequestsQuery();
   const [page, setPage] = useState(0);

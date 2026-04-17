@@ -4,6 +4,12 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Provides the shared form-label styling used throughout the dashboard.
+ *
+ * @param className - Additional class overrides.
+ * @returns A styled label element.
+ */
 function Label({ className, ...props }: React.ComponentProps<"label">) {
   return (
     <label

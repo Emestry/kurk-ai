@@ -10,6 +10,12 @@ import {
 } from "recharts";
 import type { MonthlyReportDTO } from "@/lib/types";
 
+/**
+ * Shows how many requests landed on each day of the selected month.
+ *
+ * @param data - Daily request counts split by outcome.
+ * @returns A stacked area chart card.
+ */
 export function RequestsByDayChart({
   data,
 }: {

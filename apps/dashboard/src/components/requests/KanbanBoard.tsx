@@ -27,6 +27,11 @@ type ModalState =
   | { kind: "reject"; request: GuestRequestDTO }
   | { kind: "drawer"; request: GuestRequestDTO };
 
+/**
+ * Renders the live staff request board with modal workflows for each action.
+ *
+ * @returns The three-column kanban board plus request modals.
+ */
 export function KanbanBoard() {
   const { data, isLoading, error } = useRequestsQuery();
   const updateMutation = useUpdateRequestMutation();

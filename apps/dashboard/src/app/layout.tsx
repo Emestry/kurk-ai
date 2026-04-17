@@ -20,6 +20,12 @@ export const metadata: Metadata = {
 
 const geistSans = Geist({ subsets: ["latin"] });
 
+/**
+ * Wraps the entire staff app in global styles, metadata, and providers.
+ *
+ * @param children - Nested route content for the dashboard app.
+ * @returns The root HTML layout for the staff dashboard.
+ */
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html

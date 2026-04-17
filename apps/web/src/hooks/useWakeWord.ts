@@ -165,6 +165,13 @@ function extractWakeCommand(value: string) {
   return null;
 }
 
+/**
+ * Starts passive microphone monitoring for Charlie-style wake phrases.
+ *
+ * @param options - Wake-word enable flag plus callback invoked when the phrase is detected.
+ * @returns An API with an `arm` method that requests mic access and starts monitoring.
+ * @throws Error from `arm()` when microphone access cannot be obtained.
+ */
 export function useWakeWord({ enabled, onWake }: UseWakeWordOptions): UseWakeWordReturn {
   const streamRef = useRef<MediaStream | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);

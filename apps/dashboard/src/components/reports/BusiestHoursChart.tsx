@@ -10,6 +10,12 @@ import {
 } from "recharts";
 import type { MonthlyReportDTO } from "@/lib/types";
 
+/**
+ * Visualizes which hours saw the highest room-service request volume.
+ *
+ * @param data - Hourly request counts for the selected month.
+ * @returns A bar chart card.
+ */
 export function BusiestHoursChart({
   data,
 }: {

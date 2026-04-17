@@ -6,18 +6,31 @@ import { Menu as MenuPrimitive } from "@base-ui/react/menu"
 import { cn } from "@/lib/utils"
 import { ChevronRightIcon, CheckIcon } from "lucide-react"
 
+/** Hosts dropdown menu open state and context. */
 function DropdownMenu({ ...props }: MenuPrimitive.Root.Props) {
   return <MenuPrimitive.Root data-slot="dropdown-menu" {...props} />
 }
 
+/** Portals dropdown content outside the surrounding DOM flow. */
 function DropdownMenuPortal({ ...props }: MenuPrimitive.Portal.Props) {
   return <MenuPrimitive.Portal data-slot="dropdown-menu-portal" {...props} />
 }
 
+/** Opens the dropdown when activated. */
 function DropdownMenuTrigger({ ...props }: MenuPrimitive.Trigger.Props) {
   return <MenuPrimitive.Trigger data-slot="dropdown-menu-trigger" {...props} />
 }
 
+/**
+ * Renders the main popup surface for dropdown items.
+ *
+ * @param align - Horizontal alignment relative to the trigger.
+ * @param alignOffset - Additional alignment offset in pixels.
+ * @param side - Preferred popup side.
+ * @param sideOffset - Distance from the trigger.
+ * @param className - Additional class overrides.
+ * @returns A positioned dropdown popup.
+ */
 function DropdownMenuContent({
   align = "start",
   alignOffset = 0,
@@ -49,10 +62,18 @@ function DropdownMenuContent({
   )
 }
 
+/** Groups related dropdown items. */
 function DropdownMenuGroup({ ...props }: MenuPrimitive.Group.Props) {
   return <MenuPrimitive.Group data-slot="dropdown-menu-group" {...props} />
 }
 
+/**
+ * Renders a non-interactive section label inside a dropdown.
+ *
+ * @param className - Additional class overrides.
+ * @param inset - Whether to indent the label.
+ * @returns A dropdown label.
+ */
 function DropdownMenuLabel({
   className,
   inset,
@@ -73,6 +94,14 @@ function DropdownMenuLabel({
   )
 }
 
+/**
+ * Renders one actionable dropdown item.
+ *
+ * @param className - Additional class overrides.
+ * @param inset - Whether to indent the item.
+ * @param variant - Tone for destructive vs default actions.
+ * @returns A dropdown item.
+ */
 function DropdownMenuItem({
   className,
   inset,
@@ -96,10 +125,19 @@ function DropdownMenuItem({
   )
 }
 
+/** Hosts a nested submenu branch. */
 function DropdownMenuSub({ ...props }: MenuPrimitive.SubmenuRoot.Props) {
   return <MenuPrimitive.SubmenuRoot data-slot="dropdown-menu-sub" {...props} />
 }
 
+/**
+ * Opens a nested submenu from within a dropdown.
+ *
+ * @param className - Additional class overrides.
+ * @param inset - Whether to indent the trigger.
+ * @param children - Trigger content.
+ * @returns A submenu trigger item.
+ */
 function DropdownMenuSubTrigger({
   className,
   inset,
@@ -124,6 +162,16 @@ function DropdownMenuSubTrigger({
   )
 }
 
+/**
+ * Renders the popup content for a nested submenu.
+ *
+ * @param align - Horizontal alignment for the submenu popup.
+ * @param alignOffset - Additional alignment offset.
+ * @param side - Preferred popup side.
+ * @param sideOffset - Distance from the trigger.
+ * @param className - Additional class overrides.
+ * @returns A submenu popup.
+ */
 function DropdownMenuSubContent({
   align = "start",
   alignOffset = -3,
@@ -145,6 +193,15 @@ function DropdownMenuSubContent({
   )
 }
 
+/**
+ * Renders a checkbox-style dropdown item with an indicator.
+ *
+ * @param className - Additional class overrides.
+ * @param children - Item content.
+ * @param checked - Current checked state.
+ * @param inset - Whether to indent the item.
+ * @returns A checkbox dropdown item.
+ */
 function DropdownMenuCheckboxItem({
   className,
   children,
@@ -179,6 +236,7 @@ function DropdownMenuCheckboxItem({
   )
 }
 
+/** Groups related radio items inside a dropdown. */
 function DropdownMenuRadioGroup({ ...props }: MenuPrimitive.RadioGroup.Props) {
   return (
     <MenuPrimitive.RadioGroup
@@ -188,6 +246,14 @@ function DropdownMenuRadioGroup({ ...props }: MenuPrimitive.RadioGroup.Props) {
   )
 }
 
+/**
+ * Renders a radio-style dropdown item with an indicator.
+ *
+ * @param className - Additional class overrides.
+ * @param children - Item content.
+ * @param inset - Whether to indent the item.
+ * @returns A radio dropdown item.
+ */
 function DropdownMenuRadioItem({
   className,
   children,
@@ -220,6 +286,12 @@ function DropdownMenuRadioItem({
   )
 }
 
+/**
+ * Renders a separator line between dropdown sections.
+ *
+ * @param className - Additional class overrides.
+ * @returns A dropdown separator.
+ */
 function DropdownMenuSeparator({
   className,
   ...props
@@ -233,6 +305,12 @@ function DropdownMenuSeparator({
   )
 }
 
+/**
+ * Renders right-aligned helper text such as keyboard shortcuts in a menu item.
+ *
+ * @param className - Additional class overrides.
+ * @returns A shortcut text element.
+ */
 function DropdownMenuShortcut({
   className,
   ...props

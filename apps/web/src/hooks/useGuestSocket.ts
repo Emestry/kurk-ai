@@ -26,6 +26,13 @@ function filterHistory(requests: GuestRequest[], hiddenBefore: string | null) {
   return requests.filter((request) => request.createdAt > hiddenBefore);
 }
 
+/**
+ * Connects the guest UI to room-scoped realtime updates and request history.
+ *
+ * @param roomNumber - Current paired room number, or null before setup completes.
+ * @param options - Optional callbacks such as session revocation handling.
+ * @returns Connection state, visible requests, and a setter for optimistic updates.
+ */
 export function useGuestSocket(
   roomNumber: string | null,
   options: UseGuestSocketOptions = {},

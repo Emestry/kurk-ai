@@ -33,6 +33,13 @@ const REASONS: { label: string; value: InventoryAdjustmentReason }[] = [
   { label: "Supplier error", value: "supplier_error" },
 ];
 
+/**
+ * Captures a signed stock adjustment and audit reason for one inventory item.
+ *
+ * @param item - Inventory item being adjusted.
+ * @param onClose - Callback used to dismiss the modal.
+ * @returns An adjustment dialog.
+ */
 export function AdjustModal({
   item,
   onClose,

@@ -40,6 +40,14 @@ const buttonVariants = cva(
   }
 )
 
+/**
+ * Renders the shared button primitive used throughout the dashboard.
+ *
+ * @param className - Additional class overrides.
+ * @param variant - Visual button treatment.
+ * @param size - Size preset for spacing and icon treatment.
+ * @returns A styled button primitive.
+ */
 function Button({
   className,
   variant = "default",

@@ -9,6 +9,17 @@ interface Props {
   contentRef?: RefObject<HTMLDivElement | null>;
 }
 
+/**
+ * Provides the shared shell for one request-board column.
+ *
+ * @param title - Column heading.
+ * @param count - Number displayed beside the heading.
+ * @param children - Column card content.
+ * @param className - Optional width or layout overrides.
+ * @param description - Optional helper copy shown under the title.
+ * @param contentRef - Optional ref to the scrollable content container.
+ * @returns A titled kanban column.
+ */
 export function KanbanColumn({
   title,
   count,

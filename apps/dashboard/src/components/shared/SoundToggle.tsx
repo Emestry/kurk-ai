@@ -41,6 +41,11 @@ export function useSoundEnabled(): [boolean, (next: boolean) => void] {
   return [enabled, setPreference];
 }
 
+/**
+ * Toggles whether staff notification sound effects are enabled in the dashboard.
+ *
+ * @returns A button that flips the persisted sound preference.
+ */
 export function SoundToggle() {
   const [enabled, setEnabled] = useSoundEnabled();
   return (

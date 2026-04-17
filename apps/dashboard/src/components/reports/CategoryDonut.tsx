@@ -10,6 +10,12 @@ import type { MonthlyReportDTO } from "@/lib/types";
 
 const COLORS = ["#14b8a6", "#f59e0b", "#8b5cf6", "#ef4444"];
 
+/**
+ * Shows how requests were distributed across service categories.
+ *
+ * @param data - Category counts for the selected month.
+ * @returns A donut chart card.
+ */
 export function CategoryDonut({
   data,
 }: {

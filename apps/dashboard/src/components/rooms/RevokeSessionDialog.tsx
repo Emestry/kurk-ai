@@ -12,6 +12,14 @@ import {
 import { useRevokeSessionMutation } from "@/hooks/useRoomsQuery";
 import type { RoomDeviceSessionDTO } from "@/lib/types";
 
+/**
+ * Confirms disconnecting a paired guest tablet from its room.
+ *
+ * @param session - Active device session being revoked.
+ * @param roomNumber - Human-readable room number for the dialog copy.
+ * @param onClose - Callback used to dismiss the dialog.
+ * @returns A destructive confirmation dialog.
+ */
 export function RevokeSessionDialog({
   session,
   roomNumber,

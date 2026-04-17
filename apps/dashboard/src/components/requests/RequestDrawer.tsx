@@ -24,6 +24,16 @@ interface Props {
   onOpenReject: () => void;
 }
 
+/**
+ * Shows full request details and advanced staff actions in a side drawer.
+ *
+ * @param request - Request currently being inspected.
+ * @param onClose - Callback for closing the drawer.
+ * @param onOpenAcknowledge - Opens the acknowledge modal.
+ * @param onOpenDeliver - Opens the delivery modal.
+ * @param onOpenReject - Opens the rejection modal.
+ * @returns A request detail drawer.
+ */
 export function RequestDrawer({
   request,
   onClose,

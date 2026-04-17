@@ -11,6 +11,12 @@ export interface AppEnv {
   trustProxy: boolean;
 }
 
+/**
+ * Reads and validates the API environment variables used at runtime.
+ *
+ * @returns A normalized environment object for database, auth, CORS, and OpenAI settings.
+ * @throws Error when required variables are missing or malformed.
+ */
 export function getEnv(): AppEnv {
   const databaseUrl = process.env.DATABASE_URL?.trim();
 
@@ -32,6 +38,12 @@ export function getEnv(): AppEnv {
   };
 }
 
+/**
+ * Splits the comma-delimited origin list used by the API CORS configuration.
+ *
+ * @param value - Raw ALLOWED_ORIGINS string from the environment.
+ * @returns Sanitized origins without trailing slashes.
+ */
 export function parseAllowedOrigins(value?: string): string[] {
   return (value ?? "")
     .split(",")
@@ -39,6 +51,13 @@ export function parseAllowedOrigins(value?: string): string[] {
     .filter(Boolean);
 }
 
+/**
+ * Parses the HTTP port for the API server, falling back to the default port.
+ *
+ * @param value - Raw PORT value from the environment.
+ * @returns A positive integer port number.
+ * @throws Error when the value is not a positive integer.
+ */
 export function parsePort(value?: string): number {
   if (!value) {
     return DEFAULT_PORT;
@@ -53,6 +72,14 @@ export function parsePort(value?: string): number {
   return parsed;
 }
 
+/**
+ * Parses a boolean-like environment variable with a fallback.
+ *
+ * @param value - Raw environment variable value.
+ * @param fallback - Value to use when the variable is unset.
+ * @returns The parsed boolean value.
+ * @throws Error when the provided value is not a recognized boolean token.
+ */
 export function parseBoolean(value: string | undefined, fallback: boolean): boolean {
   if (!value) {
     return fallback;

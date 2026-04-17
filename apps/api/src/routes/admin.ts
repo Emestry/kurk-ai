@@ -36,6 +36,12 @@ interface UpdateRoomDeviceBody {
   isActive?: boolean;
 }
 
+/**
+ * Builds the authenticated admin route group for room and tablet management.
+ *
+ * @param options - Optional auth middleware override, primarily for tests.
+ * @returns A Hono router mounted under `/admin`.
+ */
 export function createAdminRoutes(options: AdminRouteOptions = {}) {
   const admin = new Hono<HonoEnv>();
   const requireAdminAuth = options.auth ?? adminMiddleware;

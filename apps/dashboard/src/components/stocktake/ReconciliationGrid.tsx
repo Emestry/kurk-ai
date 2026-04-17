@@ -43,6 +43,12 @@ interface DraftState {
   reason: StocktakeDiscrepancyReason | null;
 }
 
+/**
+ * Lets staff count inventory, resolve discrepancies, and finalize a stocktake.
+ *
+ * @param sessionId - Stocktake session being reconciled.
+ * @returns The reconciliation grid for that session.
+ */
 export function ReconciliationGrid({ sessionId }: { sessionId: string }) {
   const { data: session } = useStocktakeDetailQuery(sessionId);
   const upsert = useUpsertLinesMutation();

@@ -55,6 +55,11 @@ export function mapInventoryMovement(raw: unknown): InventoryMovementDTO {
   };
 }
 
+/**
+ * Fetches the inventory list shown in the staff dashboard.
+ *
+ * @returns A React Query result containing normalized inventory items.
+ */
 export function useInventoryQuery() {
   return useQuery<InventoryItemDTO[]>({
     queryKey: queryKeys.inventory.list(),
@@ -66,6 +71,12 @@ export function useInventoryQuery() {
 }
 
 interface RestockInput { itemId: string; quantity: number; note?: string }
+
+/**
+ * Creates the mutation used to restock an inventory item.
+ *
+ * @returns A React Query mutation that posts a restock event and refreshes inventory.
+ */
 export function useRestockMutation() {
   const qc = useQueryClient();
   return useMutation<void, Error, RestockInput>({
@@ -89,6 +100,12 @@ interface AdjustInput {
   reason: InventoryAdjustmentReason;
   note?: string;
 }
+
+/**
+ * Creates the mutation used for manual inventory adjustments.
+ *
+ * @returns A React Query mutation that updates an item and patches the local cache.
+ */
 export function useAdjustMutation() {
   const qc = useQueryClient();
   return useMutation<InventoryItemDTO, Error, AdjustInput>({
@@ -115,6 +132,12 @@ interface CreateItemInput {
   quantityInStock: number;
   lowStockThreshold: number;
 }
+
+/**
+ * Creates the mutation used to add new inventory items from the dashboard.
+ *
+ * @returns A React Query mutation that prepends the created item into cache.
+ */
 export function useCreateItemMutation() {
   const qc = useQueryClient();
   return useMutation<InventoryItemDTO, Error, CreateItemInput>({
@@ -141,6 +164,12 @@ interface UpdateItemInput {
   lowStockThreshold?: number;
   isActive?: boolean;
 }
+
+/**
+ * Creates the mutation used to edit inventory metadata or activation state.
+ *
+ * @returns A React Query mutation that replaces the updated item in cache.
+ */
 export function useUpdateItemMutation() {
   const qc = useQueryClient();
   return useMutation<InventoryItemDTO, Error, UpdateItemInput>({
@@ -159,6 +188,12 @@ export function useUpdateItemMutation() {
   });
 }
 
+/**
+ * Fetches movement history for a selected inventory item.
+ *
+ * @param itemId - Inventory item id to inspect, or null when no item is selected.
+ * @returns A React Query result containing movement rows for the chosen item.
+ */
 export function useItemMovementsQuery(itemId: string | null) {
   return useQuery<InventoryMovementDTO[]>({
     enabled: Boolean(itemId),

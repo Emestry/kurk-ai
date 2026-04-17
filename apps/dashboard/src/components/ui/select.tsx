@@ -8,6 +8,12 @@ import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
 const Select = SelectPrimitive.Root
 
+/**
+ * Groups related options inside a select menu.
+ *
+ * @param className - Additional class overrides.
+ * @returns A select option group.
+ */
 function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   return (
     <SelectPrimitive.Group
@@ -18,6 +24,12 @@ function SelectGroup({ className, ...props }: SelectPrimitive.Group.Props) {
   )
 }
 
+/**
+ * Renders the currently selected value inside a select trigger.
+ *
+ * @param className - Additional class overrides.
+ * @returns A select value primitive.
+ */
 function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
   return (
     <SelectPrimitive.Value
@@ -28,6 +40,14 @@ function SelectValue({ className, ...props }: SelectPrimitive.Value.Props) {
   )
 }
 
+/**
+ * Renders the clickable select trigger button.
+ *
+ * @param className - Additional class overrides.
+ * @param size - Trigger size preset.
+ * @param children - Trigger content.
+ * @returns A styled select trigger.
+ */
 function SelectTrigger({
   className,
   size = "default",
@@ -56,6 +76,18 @@ function SelectTrigger({
   )
 }
 
+/**
+ * Renders the positioned popup that contains select options.
+ *
+ * @param className - Additional class overrides.
+ * @param children - Select options.
+ * @param side - Preferred popup side.
+ * @param sideOffset - Distance from the trigger.
+ * @param align - Horizontal alignment.
+ * @param alignOffset - Additional alignment offset.
+ * @param alignItemWithTrigger - Whether to align the chosen item with the trigger.
+ * @returns A select popup.
+ */
 function SelectContent({
   className,
   children,
@@ -95,6 +127,12 @@ function SelectContent({
   )
 }
 
+/**
+ * Renders a group label inside the select popup.
+ *
+ * @param className - Additional class overrides.
+ * @returns A select label.
+ */
 function SelectLabel({
   className,
   ...props
@@ -108,6 +146,13 @@ function SelectLabel({
   )
 }
 
+/**
+ * Renders one selectable option row.
+ *
+ * @param className - Additional class overrides.
+ * @param children - Option content.
+ * @returns A select item.
+ */
 function SelectItem({
   className,
   children,
@@ -136,6 +181,12 @@ function SelectItem({
   )
 }
 
+/**
+ * Renders a separator between select option groups.
+ *
+ * @param className - Additional class overrides.
+ * @returns A select separator.
+ */
 function SelectSeparator({
   className,
   ...props
@@ -149,6 +200,12 @@ function SelectSeparator({
   )
 }
 
+/**
+ * Renders the scroll-up affordance for long select menus.
+ *
+ * @param className - Additional class overrides.
+ * @returns A select scroll-up control.
+ */
 function SelectScrollUpButton({
   className,
   ...props
@@ -168,6 +225,12 @@ function SelectScrollUpButton({
   )
 }
 
+/**
+ * Renders the scroll-down affordance for long select menus.
+ *
+ * @param className - Additional class overrides.
+ * @returns A select scroll-down control.
+ */
 function SelectScrollDownButton({
   className,
   ...props

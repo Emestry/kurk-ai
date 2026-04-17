@@ -5,6 +5,13 @@ import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
 
+/**
+ * Hosts shared tab state and layout styling for dashboard tab groups.
+ *
+ * @param className - Additional class overrides.
+ * @param orientation - Horizontal or vertical tab layout.
+ * @returns A tabs root primitive.
+ */
 function Tabs({
   className,
   orientation = "horizontal",
@@ -38,6 +45,13 @@ const tabsListVariants = cva(
   }
 )
 
+/**
+ * Renders the shared container for a group of tab triggers.
+ *
+ * @param className - Additional class overrides.
+ * @param variant - Visual treatment for the tab list.
+ * @returns A styled tabs list primitive.
+ */
 function TabsList({
   className,
   variant = "default",
@@ -53,6 +67,12 @@ function TabsList({
   )
 }
 
+/**
+ * Renders one tab trigger button within a tab set.
+ *
+ * @param className - Additional class overrides.
+ * @returns A styled tab trigger.
+ */
 function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
   return (
     <TabsPrimitive.Tab
@@ -69,6 +89,12 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
   )
 }
 
+/**
+ * Renders the content panel associated with an active tab.
+ *
+ * @param className - Additional class overrides.
+ * @returns A tabs content panel.
+ */
 function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
   return (
     <TabsPrimitive.Panel

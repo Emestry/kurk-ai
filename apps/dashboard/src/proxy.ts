@@ -7,6 +7,12 @@ const SESSION_COOKIES = [
 ];
 const LOGIN_PATH = "/login";
 
+/**
+ * Guards staff routes by redirecting anonymous requests to the login page.
+ *
+ * @param request - Incoming Next.js middleware request.
+ * @returns A pass-through response for public/internal routes or a redirect for anonymous staff traffic.
+ */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
