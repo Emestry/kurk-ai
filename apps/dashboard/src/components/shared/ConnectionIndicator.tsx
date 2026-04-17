@@ -16,7 +16,7 @@ const COLOR: Record<string, string> = {
 };
 
 /**
- * Displays the current WebSocket connection state as a coloured dot + label.
+ * Displays the current live connection state as a coloured dot + label.
  */
 export function ConnectionIndicator() {
   const { state } = useLiveEvents();

@@ -19,8 +19,8 @@ interface LiveEventsContextValue {
 const LiveEventsContext = createContext<LiveEventsContextValue | null>(null);
 
 /**
- * Opens a single staff-scoped WebSocket for the lifetime of the app shell
- * and exposes state + a subscribe API to descendants.
+ * Opens a single staff-scoped live event stream for the lifetime of the app
+ * shell and exposes state + a subscribe API to descendants.
  */
 export function LiveEventsProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<WsState>("connecting");
@@ -28,7 +28,10 @@ export function LiveEventsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const manager = createWsManager({
-      url: process.env.NEXT_PUBLIC_WS_URL ?? "ws://localhost:3001/ws",
+      url:
+        process.env.NEXT_PUBLIC_API_URL ??
+        process.env.NEXT_PUBLIC_WS_URL ??
+        "http://localhost:3001",
     });
     managerRef.current = manager;
     const unsubscribe = manager.onState(setState);
@@ -53,7 +56,7 @@ export function LiveEventsProvider({ children }: { children: ReactNode }) {
 }
 
 /**
- * Returns the live WebSocket state and a subscribe function for live events.
+ * Returns the live connection state and a subscribe function for live events.
  * Must be used inside LiveEventsProvider.
  */
 export function useLiveEvents() {

@@ -1,4 +1,4 @@
-import type { LiveEvent } from "./types";
+import type { LiveEvent, LiveEventType } from "./types";
 
 export type WsState = "connecting" | "open" | "reconnecting" | "closed";
 
@@ -13,17 +13,46 @@ interface CreateWsOptions {
   url: string;
 }
 
+const LIVE_EVENT_TYPES: LiveEventType[] = [
+  "request.created",
+  "request.updated",
+  "request.rejected",
+  "request.delivered",
+  "inventory.updated",
+  "stocktake.finalized",
+  "alert.low_stock",
+  "room.session.created",
+  "room.session.revoked",
+];
+
+function normalizeLiveEventsUrl(rawUrl: string) {
+  const normalizedProtocol = rawUrl
+    .replace(/^ws:\/\//i, "http://")
+    .replace(/^wss:\/\//i, "https://");
+  const url = new URL(normalizedProtocol, window.location.origin);
+  const pathname = url.pathname.replace(/\/+$/, "") || "/";
+
+  if (pathname === "/ws" || pathname === "/") {
+    url.pathname = "/staff/events";
+  }
+
+  url.search = "";
+  url.hash = "";
+
+  return url.toString();
+}
+
 /**
- * Creates a staff-scoped WebSocket connection with exponential-backoff
+ * Creates a staff-scoped live event connection with exponential-backoff
  * reconnect, visibility-aware pausing, and a fan-out subscribe API.
  *
- * @param options - URL for the staff WebSocket endpoint.
+ * @param options - Base API URL or legacy staff WebSocket endpoint.
  * @returns A manager exposing state, message, and lifecycle observers.
  */
 export function createWsManager(options: CreateWsOptions): WsManager {
   const listeners = new Set<(event: LiveEvent) => void>();
   const stateListeners = new Set<(state: WsState) => void>();
-  let socket: WebSocket | null = null;
+  let source: EventSource | null = null;
   let state: WsState = "connecting";
   let attempt = 0;
   let closedByUser = false;
@@ -51,37 +80,45 @@ export function createWsManager(options: CreateWsOptions): WsManager {
     setState(attempt === 0 ? "connecting" : "reconnecting");
 
     try {
-      socket = new WebSocket(`${options.url}?scope=staff`);
+      source = new EventSource(normalizeLiveEventsUrl(options.url), {
+        withCredentials: true,
+      });
     } catch {
       scheduleReconnect();
       return;
     }
 
-    socket.addEventListener("open", () => {
+    source.addEventListener("open", () => {
       attempt = 0;
       setState("open");
     });
 
-    socket.addEventListener("message", (ev: MessageEvent<string>) => {
+    source.addEventListener("connected", () => {
+      attempt = 0;
+      setState("open");
+    });
+
+    const onEvent = (ev: MessageEvent<string>) => {
       try {
         const parsed = JSON.parse(ev.data) as LiveEvent;
         for (const l of listeners) l(parsed);
       } catch {
         /* drop malformed frames silently */
       }
-    });
+    };
 
-    socket.addEventListener("close", () => {
-      socket = null;
+    for (const type of LIVE_EVENT_TYPES) {
+      source.addEventListener(type, onEvent as EventListener);
+    }
+
+    source.addEventListener("error", () => {
+      source?.close();
+      source = null;
       if (closedByUser) {
         setState("closed");
-      } else {
-        scheduleReconnect();
+        return;
       }
-    });
-
-    socket.addEventListener("error", () => {
-      socket?.close();
+      scheduleReconnect();
     });
   }
 
@@ -95,7 +132,7 @@ export function createWsManager(options: CreateWsOptions): WsManager {
     }
     // When the tab returns to the foreground, try again regardless of the
     // cached `state` — it may be stale if a close fired while we were hidden.
-    if (!socket || socket.readyState !== WebSocket.OPEN) {
+    if (!source || source.readyState !== EventSource.OPEN) {
       if (reconnectTimer) {
         clearTimeout(reconnectTimer);
         reconnectTimer = null;
@@ -122,7 +159,9 @@ export function createWsManager(options: CreateWsOptions): WsManager {
     close() {
       closedByUser = true;
       if (reconnectTimer) clearTimeout(reconnectTimer);
-      socket?.close();
+      source?.close();
+      source = null;
+      setState("closed");
       document.removeEventListener("visibilitychange", onVisibilityChange);
     },
   };
