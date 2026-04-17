@@ -1,11 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { toast } from "sonner";
-import { Copy, KeyRound, RotateCcw, Wifi, WifiOff } from "lucide-react";
+import { Copy, KeyRound, RotateCcw, Search, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { ApiError } from "@/lib/api";
 import {
   useIssuePairingCodeMutation,
@@ -23,10 +29,24 @@ import type { RoomDTO, RoomDeviceSessionDTO } from "@/lib/types";
  */
 export function RoomList() {
   const { data, isLoading, isError, error } = useRoomsQuery();
+  const [query, setQuery] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [revoking, setRevoking] = useState<
     | null
     | { session: RoomDeviceSessionDTO; roomNumber: string }
   >(null);
+
+  const filtered = useMemo(() => {
+    if (!data) return [];
+    const needle = query.trim().toLowerCase();
+    if (!needle) return data;
+    return data.filter((room) => room.number.toLowerCase().includes(needle));
+  }, [data, query]);
+
+  const expandedRoom = useMemo(
+    () => (expandedId ? data?.find((room) => room.id === expandedId) ?? null : null),
+    [data, expandedId],
+  );
 
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
 
@@ -44,17 +64,58 @@ export function RoomList() {
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {data.map((room) => (
-          <RoomCard
-            key={room.id}
-            room={room}
-            onRevoke={(session) =>
-              setRevoking({ session, roomNumber: room.number })
-            }
+      <div className="mb-4 flex items-center gap-2">
+        <div className="relative w-full max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search room number…"
+            className="pl-9"
+            aria-label="Search rooms"
           />
-        ))}
+        </div>
       </div>
+
+      {filtered.length === 0 ? (
+        <p className="text-sm text-muted-foreground">
+          No rooms match &ldquo;{query}&rdquo;.
+        </p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          {filtered.map((room) => (
+            <RoomCard
+              key={room.id}
+              room={room}
+              onOpen={() => setExpandedId(room.id)}
+            />
+          ))}
+        </div>
+      )}
+
+      {expandedRoom ? (
+        <Dialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setExpandedId(null);
+          }}
+        >
+          <DialogContent className="max-w-md">
+            <DialogHeader className="p-6 pb-2">
+              <DialogTitle>Room {expandedRoom.number}</DialogTitle>
+            </DialogHeader>
+            <div className="px-6 pb-6">
+              <RoomDetails
+                room={expandedRoom}
+                onRevoke={(session) =>
+                  setRevoking({ session, roomNumber: expandedRoom.number })
+                }
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      ) : null}
 
       {revoking ? (
         <RevokeSessionDialog
@@ -69,6 +130,35 @@ export function RoomList() {
 
 function RoomCard({
   room,
+  onOpen,
+}: {
+  room: RoomDTO;
+  onOpen: () => void;
+}) {
+  const activeSession = room.activeSessions[0] ?? null;
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl bg-card px-4 py-3 text-left text-sm text-card-foreground ring-1 ring-foreground/10 transition-all hover:-translate-y-0.5 hover:ring-primary/50 hover:bg-accent/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <h3 className="text-base font-semibold">Room {room.number}</h3>
+      {activeSession ? (
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-medium text-emerald-400">
+          <Wifi className="h-3 w-3" /> Connected
+        </span>
+      ) : (
+        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+          <WifiOff className="h-3 w-3" /> Idle
+        </span>
+      )}
+    </button>
+  );
+}
+
+function RoomDetails({
+  room,
   onRevoke,
 }: {
   room: RoomDTO;
@@ -80,12 +170,9 @@ function RoomCard({
     : null;
 
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="flex flex-row items-center justify-between gap-2 pb-3">
-        <div>
-          <h3 className="text-lg font-semibold">Room {room.number}</h3>
-          <p className="font-mono text-xs text-muted-foreground">{room.code}</p>
-        </div>
+    <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-xs text-muted-foreground">{room.code}</p>
         {activeSession ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-medium text-emerald-400">
             <Wifi className="h-3 w-3" /> Connected
@@ -95,22 +182,19 @@ function RoomCard({
             <WifiOff className="h-3 w-3" /> Idle
           </span>
         )}
-      </CardHeader>
-
-      <CardContent className="flex flex-1 flex-col gap-4">
-        {activeSession && activeDevice ? (
-          <ActiveConnection
-            roomId={room.id}
-            session={activeSession}
-            deviceName={activeDevice.name}
-            lastSeenAt={activeDevice.lastSeenAt}
-            onRevoke={() => onRevoke(activeSession)}
-          />
-        ) : (
-          <PairingPanel room={room} />
-        )}
-      </CardContent>
-    </Card>
+      </div>
+      {activeSession && activeDevice ? (
+        <ActiveConnection
+          roomId={room.id}
+          session={activeSession}
+          deviceName={activeDevice.name}
+          lastSeenAt={activeDevice.lastSeenAt}
+          onRevoke={() => onRevoke(activeSession)}
+        />
+      ) : (
+        <PairingPanel room={room} />
+      )}
+    </div>
   );
 }
 
