@@ -42,21 +42,22 @@ export function HistoryStrip() {
   const pageRows = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
-    <section className={expanded ? "h-[70vh] overflow-auto" : "max-h-40 overflow-hidden"}>
-      <header className="mb-2 flex items-center justify-between gap-4">
+    <section className={expanded ? "h-[70vh] overflow-y-auto" : "max-h-40 overflow-hidden"}>
+      <header className="mb-2 flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
           History
         </h3>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
           <Input
-            placeholder="Search room, text, category"
+            placeholder="Search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-8 w-64"
+            className="h-8 min-w-0 flex-1"
           />
           <Button
             size="sm"
             variant="outline"
+            className="shrink-0"
             onClick={() => setExpanded((e) => !e)}
           >
             {expanded ? "Collapse" : "Expand"}
