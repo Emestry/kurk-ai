@@ -173,6 +173,41 @@ const SiriOrb: React.FC<SiriOrbProps> = ({
           to { --angle: 360deg; }
         }
 
+        @supports (-webkit-touch-callout: none) {
+          .siri-orb {
+            isolation: isolate;
+            transform: translateZ(0);
+          }
+
+          .siri-orb::before {
+            background:
+              radial-gradient(circle at 28% 30%, color-mix(in oklab, var(--c1) 90%, white 10%) 0 18%, transparent 42%),
+              radial-gradient(circle at 72% 26%, color-mix(in oklab, var(--c2) 88%, white 12%) 0 16%, transparent 40%),
+              radial-gradient(circle at 42% 74%, color-mix(in oklab, var(--c3) 92%, white 8%) 0 20%, transparent 46%),
+              radial-gradient(circle at 75% 72%, color-mix(in oklab, var(--c1) 72%, var(--c2) 28%) 0 15%, transparent 38%),
+              radial-gradient(circle at center, color-mix(in oklab, var(--bg) 42%, transparent) 0 45%, transparent 75%),
+              linear-gradient(135deg, color-mix(in oklab, var(--c1) 45%, transparent), color-mix(in oklab, var(--c2) 50%, transparent) 48%, color-mix(in oklab, var(--c3) 45%, transparent));
+            box-shadow:
+              inset 0 0 calc(var(--shadow-spread) * 2.5) color-mix(in oklab, var(--bg) 72%, transparent),
+              0 0 calc(var(--shadow-spread) * 3.5) color-mix(in oklab, var(--c2) 20%, transparent);
+            filter: saturate(1.15) contrast(1.06);
+            animation: rotate var(--animation-duration) linear infinite;
+            will-change: transform;
+          }
+
+          .siri-orb::after {
+            background:
+              radial-gradient(circle at 50% 50%, color-mix(in oklab, white 18%, transparent) 0 14%, transparent 42%),
+              radial-gradient(circle at 35% 35%, color-mix(in oklab, white 10%, transparent) 0 10%, transparent 28%);
+            background-size: auto;
+            backdrop-filter: none;
+            mix-blend-mode: screen;
+            opacity: 0.55;
+            mask-image: none;
+            -webkit-mask-image: none;
+          }
+        }
+
         @media (prefers-reduced-motion: reduce) {
           .siri-orb::before { animation: none; }
         }
