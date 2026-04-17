@@ -9,6 +9,9 @@ import {
   createRequest,
   clearSession,
   clearHistoryHiddenBefore,
+  ensureLegacyRoomSession,
+  getCurrentRequest,
+  getStoredSession,
   setHistoryHiddenBefore,
   previewGuestRequest,
   ApiError,
@@ -39,20 +42,9 @@ const WAKE_WORD_ENABLED = false;
 function GuestPageContent() {
   const { t } = useGuestLanguage();
   const { playCue, primeAudio } = useGuestAudio();
-  const [roomNumber, setRoomNumber] = useState<string | null>(() => {
-    if (typeof window === "undefined") {
-      return null;
-    }
-
-    return localStorage.getItem(ROOM_STORAGE_KEY);
-  });
-  const [state, setState] = useState<GuestState>(() => {
-    if (typeof window === "undefined") {
-      return "setup";
-    }
-
-    return localStorage.getItem(ROOM_STORAGE_KEY) ? "idle" : "setup";
-  });
+  const [roomNumber, setRoomNumber] = useState<string | null>(null);
+  const [state, setState] = useState<GuestState>("setup");
+  const [isBootstrappingSession, setIsBootstrappingSession] = useState(true);
   const [parsedResult, setParsedResult] = useState<ParseRequestResponse | null>(null);
   const [lastTranscript, setLastTranscript] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -70,6 +62,78 @@ function GuestPageContent() {
     if (err instanceof ApiError) return err.statusCode >= 500;
     return err instanceof Error && !(err instanceof ApiError);
   };
+
+  const resetGuestAccess = useCallback((nextErrorMessage?: string) => {
+    clearSession();
+    clearHistoryHiddenBefore();
+    localStorage.removeItem(ROOM_STORAGE_KEY);
+    hasArmedWakeWordRef.current = false;
+    setRoomNumber(null);
+    setParsedResult(null);
+    setPartialLines(null);
+    setLastTranscript("");
+    setHintMessage(null);
+    setErrorMessage(nextErrorMessage ?? null);
+    setState("setup");
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function bootstrapRoomSession() {
+      const storedSession = getStoredSession();
+      const storedRoom = storedSession?.roomNumber ?? localStorage.getItem(ROOM_STORAGE_KEY);
+
+      if (!storedRoom) {
+        if (!cancelled) {
+          setRoomNumber(null);
+          setState("setup");
+          setIsBootstrappingSession(false);
+        }
+        return;
+      }
+
+      try {
+        const roomSessionToken = storedSession?.token
+          ? storedSession.token
+          : await ensureLegacyRoomSession(storedRoom);
+        const current = await getCurrentRequest(roomSessionToken);
+
+        if (cancelled) {
+          return;
+        }
+
+        localStorage.setItem(ROOM_STORAGE_KEY, current.roomNumber);
+        setRoomNumber(current.roomNumber);
+        setState("idle");
+      } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
+        if (
+          !(error instanceof ApiError) ||
+          error.statusCode === 401 ||
+          error.statusCode === 404
+        ) {
+          resetGuestAccess();
+        } else {
+          setRoomNumber(storedRoom);
+          setState("idle");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsBootstrappingSession(false);
+        }
+      }
+    }
+
+    void bootstrapRoomSession();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [resetGuestAccess]);
 
   const handleParseRequest = useCallback(async (transcript: string) => {
     try {
@@ -132,16 +196,8 @@ function GuestPageContent() {
   });
   const { connectionStatus, requests, setRequests } = useGuestSocket(roomNumber, {
     onSessionRevoked: () => {
-      clearSession();
-      clearHistoryHiddenBefore();
-      localStorage.removeItem(ROOM_STORAGE_KEY);
-      hasArmedWakeWordRef.current = false;
       playCue("error");
-      setRoomNumber(null);
-      setParsedResult(null);
-      setLastTranscript("");
-      setErrorMessage(t("error.sessionRevoked"));
-      setState("setup");
+      resetGuestAccess(t("error.sessionRevoked"));
     },
   });
 
@@ -384,7 +440,18 @@ function GuestPageContent() {
         onDismiss={() => setHintMessage(null)}
       />
 
-      {state === "setup" && (
+      {isBootstrappingSession && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--guest-bg)]">
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-2 border-[var(--guest-accent)] border-t-transparent" />
+            <p className="text-sm text-[var(--guest-text-muted)]">
+              {t("setup.loadingRoom")}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {!isBootstrappingSession && state === "setup" && (
         <SetupScreen
           onSubmit={handleSetupSubmit}
           onPrimeAudio={primeAudio}
@@ -392,7 +459,7 @@ function GuestPageContent() {
         />
       )}
 
-      {state !== "setup" && (
+      {!isBootstrappingSession && state !== "setup" && (
         <LayoutGroup id="guest-orb-transition">
           <GuestView
             roomNumber={roomNumber!}

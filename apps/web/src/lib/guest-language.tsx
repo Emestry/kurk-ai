@@ -28,6 +28,7 @@ export type TranslationKey =
   | "setup.pairingPlaceholder"
   | "setup.pairingHint"
   | "setup.activating"
+  | "setup.loadingRoom"
   | "setup.start"
   | "setup.activationError"
   | "connection.connected"
@@ -88,6 +89,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "setup.pairingPlaceholder": "------",
     "setup.pairingHint": "Ask staff to issue a 6-digit code for this room.",
     "setup.activating": "Activating...",
+    "setup.loadingRoom": "Checking room access...",
     "setup.start": "Start",
     "setup.activationError": "Failed to activate tablet.",
     "connection.connected": "Connected",
@@ -145,6 +147,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "setup.pairingPlaceholder": "------",
     "setup.pairingHint": "Palu personalil väljastada sellele toale 6-kohaline kood.",
     "setup.activating": "Aktiveerin...",
+    "setup.loadingRoom": "Kontrollin toa ligipääsu...",
     "setup.start": "Alusta",
     "setup.activationError": "Tahvelarvuti aktiveerimine ebaõnnestus.",
     "connection.connected": "Ühendatud",
@@ -202,6 +205,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "setup.pairingPlaceholder": "------",
     "setup.pairingHint": "Pídele al personal un código de 6 dígitos para esta habitación.",
     "setup.activating": "Activando...",
+    "setup.loadingRoom": "Comprobando acceso de la habitación...",
     "setup.start": "Empezar",
     "setup.activationError": "No se pudo activar la tableta.",
     "connection.connected": "Conectado",
@@ -259,6 +263,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "setup.pairingPlaceholder": "------",
     "setup.pairingHint": "Demandez au personnel un code à 6 chiffres pour cette chambre.",
     "setup.activating": "Activation...",
+    "setup.loadingRoom": "Vérification de l’accès à la chambre...",
     "setup.start": "Commencer",
     "setup.activationError": "Impossible d’activer la tablette.",
     "connection.connected": "Connecté",
@@ -316,6 +321,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "setup.pairingPlaceholder": "------",
     "setup.pairingHint": "Попросите персонал выдать 6-значный код для этого номера.",
     "setup.activating": "Активация...",
+    "setup.loadingRoom": "Проверяем доступ к номеру...",
     "setup.start": "Начать",
     "setup.activationError": "Не удалось активировать планшет.",
     "connection.connected": "Подключено",
@@ -373,6 +379,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "setup.pairingPlaceholder": "------",
     "setup.pairingHint": "Bitten Sie das Personal um einen 6-stelligen Code für dieses Zimmer.",
     "setup.activating": "Aktivierung...",
+    "setup.loadingRoom": "Zimmerzugang wird geprüft...",
     "setup.start": "Starten",
     "setup.activationError": "Tablet konnte nicht aktiviert werden.",
     "connection.connected": "Verbunden",
