@@ -308,6 +308,34 @@ export async function issueRoomPairingCode(
 }
 
 /**
+ * Clears an active room pairing code so an accidentally-issued tablet code
+ * cannot be redeemed.
+ */
+export async function revokeRoomPairingCode(roomId: string) {
+  const room = await withDbTransaction(async (db) => {
+    const existing = await db.room.findUnique({ where: { id: roomId } });
+
+    if (!existing || !existing.isActive) {
+      throw new ApiError(404, "Room not found");
+    }
+
+    return db.room.update({
+      where: { id: roomId },
+      data: {
+        pairingCode: null,
+        pairingCodeExpiresAt: null,
+      },
+    });
+  });
+
+  return {
+    roomId: room.id,
+    pairingCode: room.pairingCode,
+    expiresAt: room.pairingCodeExpiresAt,
+  };
+}
+
+/**
  * Resolves an active room device session token into a usable guest tablet session.
  */
 export async function getActiveRoomDeviceSession(token?: string) {

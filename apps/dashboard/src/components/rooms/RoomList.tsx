@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { toast } from "sonner";
-import { Copy, KeyRound, RotateCcw, Search, Wifi, WifiOff } from "lucide-react";
+import { Ban, Copy, KeyRound, RotateCcw, Search, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { ApiError } from "@/lib/api";
 import {
   useIssuePairingCodeMutation,
+  useRevokePairingCodeMutation,
   useResetRoomHistoryMutation,
   useRoomsQuery,
 } from "@/hooks/useRoomsQuery";
@@ -262,6 +263,7 @@ function ActiveConnection({
 
 function PairingPanel({ room }: { room: RoomDTO }) {
   const issue = useIssuePairingCodeMutation();
+  const revoke = useRevokePairingCodeMutation();
   const [now, setNow] = useState(() => Date.now());
 
   const expiresAt = room.pairingCodeExpiresAt
@@ -297,6 +299,15 @@ function PairingPanel({ room }: { room: RoomDTO }) {
     }
   }
 
+  async function onRevoke() {
+    try {
+      await revoke.mutateAsync({ roomId: room.id });
+      toast.success("Pairing code disabled");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Disable failed");
+    }
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-3">
       {isValid && room.pairingCode ? (
@@ -326,8 +337,8 @@ function PairingPanel({ room }: { room: RoomDTO }) {
         size="sm"
         variant={isValid ? "outline" : "default"}
         onClick={onIssue}
-        disabled={issue.isPending}
-        className="mt-auto"
+        disabled={issue.isPending || revoke.isPending}
+        className={isValid ? "" : "mt-auto"}
       >
         <KeyRound className="mr-2 h-4 w-4" />
         {issue.isPending
@@ -336,6 +347,19 @@ function PairingPanel({ room }: { room: RoomDTO }) {
             ? "Replace code"
             : "Issue pairing code"}
       </Button>
+
+      {isValid ? (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onRevoke}
+          disabled={revoke.isPending || issue.isPending}
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <Ban className="mr-2 h-4 w-4" />
+          {revoke.isPending ? "Disabling…" : "Disable code"}
+        </Button>
+      ) : null}
     </div>
   );
 }

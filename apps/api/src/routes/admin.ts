@@ -8,6 +8,7 @@ import {
   createRoomDevice,
   issueRoomPairingCode,
   listRoomsWithDevices,
+  revokeRoomPairingCode,
   revokeRoomDeviceSession,
   updateRoom,
   updateRoomDevice,
@@ -49,6 +50,11 @@ export function createAdminRoutes(options: AdminRouteOptions = {}) {
   admin.post("/rooms/:roomId/pairing-code", async (c) => {
     const pairing = await issueRoomPairingCode(c.req.param("roomId"));
     return c.json(pairing, 201);
+  });
+
+  admin.delete("/rooms/:roomId/pairing-code", async (c) => {
+    const pairing = await revokeRoomPairingCode(c.req.param("roomId"));
+    return c.json(pairing);
   });
 
   admin.patch("/rooms/:roomId", async (c) => {

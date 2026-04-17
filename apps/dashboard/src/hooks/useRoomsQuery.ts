@@ -108,3 +108,16 @@ export function useIssuePairingCodeMutation() {
     },
   });
 }
+
+export function useRevokePairingCodeMutation() {
+  const qc = useQueryClient();
+  return useMutation<void, Error, { roomId: string }>({
+    mutationFn: ({ roomId }) =>
+      apiFetch<void>(`/admin/rooms/${roomId}/pairing-code`, {
+        method: "DELETE",
+      }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.rooms.all() });
+    },
+  });
+}

@@ -159,6 +159,43 @@ test("admin can manage rooms, devices, and revoke room sessions", async () => {
   assert.equal(currentResponse.status, 401);
 });
 
+test("admin can disable an issued room pairing code", async () => {
+  const room = await prisma.room.findUniqueOrThrow({ where: { number: "201" } });
+
+  const issueResponse = await protectedApp.request(
+    `http://localhost/admin/rooms/${room.id}/pairing-code`,
+    { method: "POST" },
+  );
+
+  assert.equal(issueResponse.status, 201);
+  const issuePayload = await issueResponse.json();
+  assert.match(issuePayload.pairingCode, /^\d{6}$/);
+
+  const revokeResponse = await protectedApp.request(
+    `http://localhost/admin/rooms/${room.id}/pairing-code`,
+    { method: "DELETE" },
+  );
+
+  assert.equal(revokeResponse.status, 200);
+
+  const updatedRoom = await prisma.room.findUniqueOrThrow({ where: { id: room.id } });
+  assert.equal(updatedRoom.pairingCode, null);
+  assert.equal(updatedRoom.pairingCodeExpiresAt, null);
+
+  const sessionResponse = await app.request("http://localhost/guest/device-sessions", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      roomCode: room.code,
+      pairingCode: issuePayload.pairingCode,
+      deviceFingerprint: `tablet-disabled-code-${Date.now()}`,
+      deviceName: "Disabled Code Tablet",
+    }),
+  });
+
+  assert.equal(sessionResponse.status, 401);
+});
+
 test.after(async () => {
   await prisma.$disconnect();
 });
