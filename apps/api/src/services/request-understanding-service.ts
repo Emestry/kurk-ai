@@ -1,6 +1,7 @@
 import { withDbTransaction } from "@/lib/db.js";
 import { ApiError } from "@/lib/errors.js";
 import { getEnv } from "@/lib/env.js";
+import { requireStoredText } from "@/lib/input.js";
 import OpenAI from "openai";
 
 const env = getEnv();
@@ -239,11 +240,7 @@ function fallbackSubstringMatch(
  * Uses an LLM to understand multilingual guest requests and map them to real inventory.
  */
 export async function understandGuestRequest(rawText: string): Promise<ParsedGuestRequest> {
-  const normalized = rawText.trim();
-
-  if (!normalized) {
-    throw new ApiError(400, "Request text is required");
-  }
+  const normalized = requireStoredText(rawText, "Request text");
 
   const inventoryRaw = await withDbTransaction((db) =>
     db.inventoryItem.findMany({

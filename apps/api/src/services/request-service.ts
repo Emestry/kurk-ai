@@ -5,8 +5,14 @@ import {
   RequestSource,
   RequestStatus,
 } from "@/generated/prisma/enums.js";
+import type { DbClient } from "@/lib/db.js";
 import { withDbTransaction } from "@/lib/db.js";
 import { ApiError } from "@/lib/errors.js";
+import {
+  requireStoredText,
+  sanitizeOptionalStoredText,
+  sanitizeStoredText,
+} from "@/lib/input.js";
 import { publishRealtimeEvent } from "@/lib/realtime.js";
 import {
   checkInventoryAvailability,
@@ -174,6 +180,33 @@ function validateExplicitItems(items: CreateGuestRequestInput["items"]) {
   }));
 }
 
+async function validateExplicitItemsAgainstInventory(
+  db: DbClient,
+  items: Array<{ inventoryItemId: string; quantity: number }>,
+) {
+  const inventory = await db.inventoryItem.findMany({
+    where: {
+      id: { in: items.map((item) => item.inventoryItemId) },
+      isActive: true,
+    },
+    select: {
+      id: true,
+      category: true,
+    },
+  });
+
+  if (inventory.length !== items.length) {
+    throw new ApiError(400, "One or more inventory items are invalid");
+  }
+
+  const categories = new Set(inventory.map((item) => item.category));
+
+  return {
+    items,
+    category: categories.size === 1 ? [...categories][0] : null,
+  };
+}
+
 async function resolveGuestRoom(input: CreateGuestRequestInput) {
   if (input.roomSessionToken) {
     const session = await getActiveRoomDeviceSession(input.roomSessionToken);
@@ -222,56 +255,59 @@ function toRealtimeType(status: RequestStatus) {
  * Creates a guest request, parses inventory items when needed, and reserves stock atomically.
  */
 export async function createGuestRequest(input: CreateGuestRequestInput) {
+  const rawText = requireStoredText(input.rawText, "Request text", {
+    preserveNewlines: true,
+  });
   const resolved = await resolveGuestRoom(input);
-  const parsed =
-    input.items && input.items.length > 0
-      ? {
-          normalizedText: input.rawText.trim(),
-          category: null,
-          items: validateExplicitItems(input.items),
-        }
-      : await parseGuestRequestText(input.rawText);
-
-  // When the guest has opted into a partial fulfillment, drop items that
-  // can't be reserved at all and clamp every remaining line to what's
-  // actually in stock — the persisted request then reflects the real order,
-  // not the original ask. If nothing can be fulfilled we reject early.
-  let effectiveItems = parsed.items;
-  if (input.allowPartial) {
-    const availability = await checkInventoryAvailability(
-      parsed.items.map((item) => ({
-        inventoryItemId: item.inventoryItemId,
-        quantity: item.quantity,
-      })),
-    );
-    const availableByItem = new Map(
-      availability.map((line) => [line.inventoryItemId, line.availableQuantity]),
-    );
-    effectiveItems = parsed.items
-      .map((item) => ({
-        ...item,
-        quantity: Math.min(item.quantity, availableByItem.get(item.inventoryItemId) ?? 0),
-      }))
-      .filter((item) => item.quantity > 0);
-
-    if (effectiveItems.length === 0) {
-      throw new ApiError(
-        422,
-        "Out of stock: none of the requested items are available right now",
-      );
-    }
-  }
 
   const result = await withDbTransaction(async (db) => {
+    const parsed =
+      input.items && input.items.length > 0
+        ? {
+            normalizedText: rawText,
+            ...(await validateExplicitItemsAgainstInventory(
+              db,
+              validateExplicitItems(input.items),
+            )),
+          }
+        : await parseGuestRequestText(rawText);
+
+    let effectiveItems = parsed.items;
+    if (input.allowPartial) {
+      const availability = await checkInventoryAvailability(
+        parsed.items.map((item) => ({
+          inventoryItemId: item.inventoryItemId,
+          quantity: item.quantity,
+        })),
+        db,
+      );
+      const availableByItem = new Map(
+        availability.map((line) => [line.inventoryItemId, line.availableQuantity]),
+      );
+      effectiveItems = parsed.items
+        .map((item) => ({
+          ...item,
+          quantity: Math.min(item.quantity, availableByItem.get(item.inventoryItemId) ?? 0),
+        }))
+        .filter((item) => item.quantity > 0);
+
+      if (effectiveItems.length === 0) {
+        throw new ApiError(
+          422,
+          "Out of stock: none of the requested items are available right now",
+        );
+      }
+    }
+
     const request = await db.guestRequest.create({
       data: {
         roomId: resolved.room.id,
         roomDeviceSessionId: resolved.roomDeviceSessionId,
         source: toRequestSource(input.source),
-        rawText: input.rawText.trim(),
-        normalizedText: parsed.normalizedText,
+        rawText,
+        normalizedText: sanitizeOptionalStoredText(parsed.normalizedText),
         category: parsed.category ?? undefined,
-        guestMessage: "Done. We've let the front desk know.",
+        guestMessage: sanitizeStoredText("Done. We've let the front desk know."),
         items: {
           create: effectiveItems.map((item) => ({
             inventoryItemId: item.inventoryItemId,
@@ -306,8 +342,8 @@ export async function createGuestRequest(input: CreateGuestRequestInput) {
           where: { id: request.id },
           data: {
             status: RequestStatus.rejected,
-            rejectionReason: error.message,
-            guestMessage: error.message,
+            rejectionReason: sanitizeStoredText(error.message),
+            guestMessage: sanitizeStoredText(error.message),
           },
           include: {
             room: true,
@@ -600,10 +636,12 @@ export async function updateStaffRequest(input: UpdateStaffRequestInput) {
     }
 
     if (input.staffNote !== undefined) {
+      const staffNote =
+        sanitizeOptionalStoredText(input.staffNote, { preserveNewlines: true }) ?? null;
       await db.guestRequest.update({
         where: { id: request.id },
         data: {
-          staffNote: input.staffNote?.trim() || null,
+          staffNote,
         },
       });
 
@@ -614,7 +652,7 @@ export async function updateStaffRequest(input: UpdateStaffRequestInput) {
           type: RequestEventType.note_added,
           actorType: RequestActorType.staff,
           payload: {
-            staffNote: input.staffNote?.trim() || null,
+            staffNote,
           },
         },
       });
@@ -688,24 +726,26 @@ export async function updateStaffRequest(input: UpdateStaffRequestInput) {
         throw new ApiError(409, "Invalid request status transition");
       }
 
-      if (!input.rejectionReason?.trim()) {
-        throw new ApiError(400, "Rejected status requires a rejection reason");
-      }
+      const rejectionReason = requireStoredText(
+        input.rejectionReason,
+        "Rejection reason",
+        { preserveNewlines: true },
+      );
 
       const reservationIds = request.items.flatMap((item) =>
         item.reservations.map((reservation) => reservation.id),
       );
 
       if (reservationIds.length > 0) {
-        await releaseReservations(db, reservationIds, input.rejectionReason.trim());
+        await releaseReservations(db, reservationIds, rejectionReason);
       }
 
       const updated = await db.guestRequest.update({
         where: { id: request.id },
         data: {
           status: RequestStatus.rejected,
-          rejectionReason: input.rejectionReason.trim(),
-          guestMessage: input.rejectionReason.trim(),
+          rejectionReason,
+          guestMessage: rejectionReason,
         },
         include: {
           room: true,
@@ -729,7 +769,7 @@ export async function updateStaffRequest(input: UpdateStaffRequestInput) {
           type: RequestEventType.rejected,
           actorType: RequestActorType.staff,
           payload: {
-            reason: input.rejectionReason.trim(),
+            reason: rejectionReason,
           },
         },
       });
@@ -810,9 +850,9 @@ export async function updateStaffRequest(input: UpdateStaffRequestInput) {
         status: nextStatus,
         guestMessage:
           nextStatus === RequestStatus.delivered
-            ? "Done! Enjoy the rest of your stay."
+            ? sanitizeStoredText("Done! Enjoy the rest of your stay.")
             : nextStatus === RequestStatus.partially_delivered
-              ? "Part of your request has been delivered."
+              ? sanitizeStoredText("Part of your request has been delivered.")
               : request.guestMessage,
       },
       include: {

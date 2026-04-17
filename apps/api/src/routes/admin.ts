@@ -3,6 +3,7 @@ import type { MiddlewareHandler } from "hono";
 import { adminMiddleware } from "@/middlewares/auth.js";
 import type { HonoEnv } from "@/lib/types.js";
 import { jsonError } from "@/lib/http.js";
+import { requireCuid, requireStoredText } from "@/lib/input.js";
 import { publishRealtimeEvent } from "@/lib/realtime.js";
 import {
   createRoomDevice,
@@ -54,18 +55,26 @@ export function createAdminRoutes(options: AdminRouteOptions = {}) {
   });
 
   admin.post("/rooms/:roomId/pairing-code", async (c) => {
-    const pairing = await issueRoomPairingCode(c.req.param("roomId"));
+    const pairing = await issueRoomPairingCode(requireCuid(c.req.param("roomId"), "Room id"));
     return c.json(pairing, 201);
   });
 
   admin.delete("/rooms/:roomId/pairing-code", async (c) => {
-    const pairing = await revokeRoomPairingCode(c.req.param("roomId"));
+    const pairing = await revokeRoomPairingCode(requireCuid(c.req.param("roomId"), "Room id"));
     return c.json(pairing);
   });
 
   admin.patch("/rooms/:roomId", async (c) => {
     const body = await c.req.json<UpdateRoomBody>();
-    const room = await updateRoom(c.req.param("roomId"), body);
+    const room = await updateRoom(requireCuid(c.req.param("roomId"), "Room id"), {
+      number: body.number === undefined ? undefined : requireStoredText(body.number, "Room number"),
+      code: body.code === undefined ? undefined : requireStoredText(body.code, "Room code"),
+      accessToken:
+        body.accessToken === undefined
+          ? undefined
+          : requireStoredText(body.accessToken, "Room access token"),
+      isActive: body.isActive,
+    });
     return c.json({ room });
   });
 
@@ -76,9 +85,9 @@ export function createAdminRoutes(options: AdminRouteOptions = {}) {
       return jsonError(c, 400, "Device name and fingerprint are required");
     }
 
-    const device = await createRoomDevice(c.req.param("roomId"), {
-      name: body.name.trim(),
-      deviceFingerprint: body.deviceFingerprint.trim(),
+    const device = await createRoomDevice(requireCuid(c.req.param("roomId"), "Room id"), {
+      name: requireStoredText(body.name, "Device name"),
+      deviceFingerprint: requireStoredText(body.deviceFingerprint, "Device fingerprint"),
       isActive: body.isActive,
     });
 
@@ -88,16 +97,22 @@ export function createAdminRoutes(options: AdminRouteOptions = {}) {
   admin.patch("/rooms/:roomId/devices/:deviceId", async (c) => {
     const body = await c.req.json<UpdateRoomDeviceBody>();
     const device = await updateRoomDevice(
-      c.req.param("roomId"),
-      c.req.param("deviceId"),
-      body,
+      requireCuid(c.req.param("roomId"), "Room id"),
+      requireCuid(c.req.param("deviceId"), "Device id"),
+      {
+        name:
+          body.name === undefined
+            ? undefined
+            : requireStoredText(body.name, "Device name"),
+        isActive: body.isActive,
+      },
     );
 
     return c.json({ device });
   });
 
   admin.post("/rooms/:roomId/reset-history", async (c) => {
-    const roomId = c.req.param("roomId");
+    const roomId = requireCuid(c.req.param("roomId"), "Room id");
     const occurredAt = new Date().toISOString();
     publishRealtimeEvent({
       type: "room.history.reset",
@@ -110,7 +125,9 @@ export function createAdminRoutes(options: AdminRouteOptions = {}) {
   });
 
   admin.post("/device-sessions/:sessionId/revoke", async (c) => {
-    const session = await revokeRoomDeviceSession(c.req.param("sessionId"));
+    const session = await revokeRoomDeviceSession(
+      requireCuid(c.req.param("sessionId"), "Session id"),
+    );
     return c.json({
       sessionId: session.id,
       revokedAt: session.revokedAt,

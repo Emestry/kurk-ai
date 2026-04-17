@@ -5,6 +5,7 @@ import type { InventoryAdjustmentReason } from "@/generated/prisma/enums.js";
 import { authMiddleware } from "@/middlewares/auth.js";
 import type { HonoEnv } from "@/lib/types.js";
 import { jsonError } from "@/lib/http.js";
+import { requireCuid, requireStoredText, sanitizeOptionalStoredText } from "@/lib/input.js";
 import { subscribeToRealtimeEvents } from "@/lib/realtime.js";
 import {
   adjustInventoryItem,
@@ -72,6 +73,22 @@ interface UpsertStocktakeLinesBody {
     reason?: "damaged" | "theft" | "miscounted" | "supplier_error";
   }>;
 }
+
+const REQUEST_CATEGORIES = new Set([
+  "room_service",
+  "housekeeping",
+  "maintenance",
+  "reception",
+]);
+
+const ADJUSTMENT_REASONS = new Set<InventoryAdjustmentReason>([
+  "restock",
+  "manual_adjustment",
+  "damaged",
+  "theft",
+  "miscounted",
+  "supplier_error",
+]);
 
 function createStatusInput(
   requestId: string,
@@ -141,7 +158,7 @@ export function createStaffRoutes(options: StaffRouteOptions = {}) {
 
   staff.patch("/requests/:requestId", async (c) => {
     const body = createStatusInput(
-      c.req.param("requestId"),
+      requireCuid(c.req.param("requestId"), "Request id"),
       await c.req.json<UpdateStaffRequestBody>(),
     );
 
@@ -159,7 +176,7 @@ export function createStaffRoutes(options: StaffRouteOptions = {}) {
       .catch(() => ({ minutes: undefined }));
     const minutes = body?.minutes ?? 5;
     const request = await extendStaffRequestEta({
-      requestId: c.req.param("requestId"),
+      requestId: requireCuid(c.req.param("requestId"), "Request id"),
       minutes,
     });
     return c.json(request);
@@ -177,6 +194,7 @@ export function createStaffRoutes(options: StaffRouteOptions = {}) {
       !body.sku?.trim() ||
       !body.name?.trim() ||
       !body.category ||
+      !REQUEST_CATEGORIES.has(body.category) ||
       !body.unit?.trim() ||
       body.quantityInStock === undefined ||
       body.lowStockThreshold === undefined
@@ -198,7 +216,19 @@ export function createStaffRoutes(options: StaffRouteOptions = {}) {
 
   staff.patch("/inventory/:inventoryItemId", async (c) => {
     const body = await c.req.json<InventoryBody>();
-    const item = await updateInventoryItem(c.req.param("inventoryItemId"), body);
+    if (body.category !== undefined && !REQUEST_CATEGORIES.has(body.category)) {
+      return jsonError(c, 400, "Invalid inventory category");
+    }
+    const item = await updateInventoryItem(
+      requireCuid(c.req.param("inventoryItemId"), "Inventory item id"),
+      {
+        name: body.name === undefined ? undefined : requireStoredText(body.name, "Name"),
+        category: body.category,
+        unit: body.unit === undefined ? undefined : requireStoredText(body.unit, "Unit"),
+        lowStockThreshold: body.lowStockThreshold,
+        isActive: body.isActive,
+      },
+    );
     return c.json(item);
   });
 
@@ -210,9 +240,9 @@ export function createStaffRoutes(options: StaffRouteOptions = {}) {
     }
 
     const result = await restockInventoryItem({
-      inventoryItemId: c.req.param("inventoryItemId"),
+      inventoryItemId: requireCuid(c.req.param("inventoryItemId"), "Inventory item id"),
       quantity: body.quantity!,
-      note: body.note?.trim(),
+      note: sanitizeOptionalStoredText(body.note, { preserveNewlines: true }),
       createdByUserId: c.get("user").id,
     });
 
@@ -222,15 +252,20 @@ export function createStaffRoutes(options: StaffRouteOptions = {}) {
   staff.post("/inventory/:inventoryItemId/adjustments", async (c) => {
     const body = await c.req.json<AdjustmentBody>();
 
-    if (!Number.isInteger(body.quantityDelta) || body.quantityDelta === 0 || !body.reason) {
+    if (
+      !Number.isInteger(body.quantityDelta) ||
+      body.quantityDelta === 0 ||
+      !body.reason ||
+      !ADJUSTMENT_REASONS.has(body.reason)
+    ) {
       return jsonError(c, 400, "Invalid inventory adjustment payload");
     }
 
     const result = await adjustInventoryItem({
-      inventoryItemId: c.req.param("inventoryItemId"),
+      inventoryItemId: requireCuid(c.req.param("inventoryItemId"), "Inventory item id"),
       quantityDelta: body.quantityDelta!,
       reason: body.reason,
-      note: body.note?.trim(),
+      note: sanitizeOptionalStoredText(body.note, { preserveNewlines: true }),
       createdByUserId: c.get("user").id,
     });
 
@@ -302,9 +337,9 @@ export function createStaffRoutes(options: StaffRouteOptions = {}) {
   staff.post("/stocktakes/:stocktakeId/lines", async (c) => {
     const body = await c.req.json<UpsertStocktakeLinesBody>();
     const session = await upsertStocktakeLines(
-      c.req.param("stocktakeId"),
+      requireCuid(c.req.param("stocktakeId"), "Stocktake id"),
       body.lines?.map((line) => ({
-        inventoryItemId: line.inventoryItemId?.trim() ?? "",
+        inventoryItemId: requireCuid(line.inventoryItemId, "Inventory item id"),
         physicalCount: line.physicalCount ?? -1,
         reason: line.reason,
       })) ?? [],
@@ -314,13 +349,13 @@ export function createStaffRoutes(options: StaffRouteOptions = {}) {
   });
 
   staff.get("/stocktakes/:stocktakeId", async (c) => {
-    const session = await getStocktakeSession(c.req.param("stocktakeId"));
+    const session = await getStocktakeSession(requireCuid(c.req.param("stocktakeId"), "Stocktake id"));
     return c.json(session);
   });
 
   staff.post("/stocktakes/:stocktakeId/finalize", async (c) => {
     const session = await finalizeStocktakeSession(
-      c.req.param("stocktakeId"),
+      requireCuid(c.req.param("stocktakeId"), "Stocktake id"),
       c.get("user").id,
     );
     return c.json(session);

@@ -6,6 +6,7 @@ import {
 import type { DbClient } from "@/lib/db.js";
 import { withDbTransaction } from "@/lib/db.js";
 import { ApiError } from "@/lib/errors.js";
+import { sanitizeOptionalStoredText } from "@/lib/input.js";
 import { publishRealtimeEvent } from "@/lib/realtime.js";
 
 function assertNonNegativeInteger(value: number, label: string) {
@@ -57,7 +58,7 @@ export async function createStocktakeSession(note?: string, startedByUserId?: st
     const safeStartedByUserId = await resolveExistingUserId(db, startedByUserId);
     const session = await db.stocktakeSession.create({
       data: {
-        note: note?.trim() || undefined,
+        note: sanitizeOptionalStoredText(note, { preserveNewlines: true }),
         startedByUserId: safeStartedByUserId,
       },
     });

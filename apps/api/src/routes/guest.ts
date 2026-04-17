@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { streamSSE } from "hono/streaming";
 import { jsonError } from "@/lib/http.js";
+import { requireCuid, requireStoredText } from "@/lib/input.js";
 import { subscribeToRealtimeEvents } from "@/lib/realtime.js";
 import { roomDeviceAuthMiddleware } from "@/middlewares/room-device-auth.js";
 import {
@@ -114,10 +115,10 @@ guest.post("/device-sessions", async (c) => {
   }
 
   const session = await createRoomDeviceSession({
-    roomCode: body.roomCode.trim(),
-    pairingCode: body.pairingCode.trim(),
-    deviceFingerprint: body.deviceFingerprint.trim(),
-    deviceName: body.deviceName?.trim(),
+    roomCode: requireStoredText(body.roomCode, "Room code"),
+    pairingCode: requireStoredText(body.pairingCode, "Pairing code"),
+    deviceFingerprint: requireStoredText(body.deviceFingerprint, "Device fingerprint"),
+    deviceName: body.deviceName ? requireStoredText(body.deviceName, "Device name") : undefined,
   });
 
   return c.json(session, 201);
@@ -178,7 +179,10 @@ guest.post("/parse-request", async (c) => {
 guest.post("/translate", async (c) => {
   const body = await c.req.json<TranslateGuestTextsBody>();
 
-  if (!Array.isArray(body.texts) || body.texts.some((text) => typeof text !== "string")) {
+  if (
+    !Array.isArray(body.texts) ||
+    body.texts.some((text) => typeof text !== "string" || !text.trim())
+  ) {
     return jsonError(c, 400, "Texts are required");
   }
 
@@ -310,7 +314,9 @@ guest.post("/requests/preview", async (c) => {
   const rawItems = Array.isArray(body?.items) ? body.items : [];
   const inputs = rawItems
     .map((item) => ({
-      inventoryItemId: item.inventoryItemId?.trim() ?? "",
+      inventoryItemId: item.inventoryItemId
+        ? requireCuid(item.inventoryItemId.trim(), "Inventory item id")
+        : "",
       quantity: item.quantity ?? 0,
     }))
     .filter(
