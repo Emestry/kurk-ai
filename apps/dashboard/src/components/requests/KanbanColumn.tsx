@@ -41,7 +41,7 @@ export function KanbanColumn({
         </div>
         <span className="text-xs text-muted-foreground">· {count}</span>
       </header>
-      <div ref={contentRef} className="flex-1 space-y-3 overflow-y-auto pr-1">
+      <div ref={contentRef} className="space-y-3 pr-1 lg:flex-1 lg:overflow-y-auto">
         {children}
       </div>
     </section>
