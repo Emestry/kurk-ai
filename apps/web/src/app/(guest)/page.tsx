@@ -34,10 +34,7 @@ import { VoiceHintToast } from "@/components/guest/VoiceHintToast";
 
 const ROOM_STORAGE_KEY = "kurkai-room-number";
 
-// Wake-word detection is temporarily disabled — the current passive-listen +
-// transcribe approach is too noisy. Flip this to true once a better detector
-// lands. All supporting hooks stay wired so re-enabling is a one-line change.
-const WAKE_WORD_ENABLED = false;
+const WAKE_WORD_ENABLED = true;
 
 function GuestPageContent() {
   const { t } = useGuestLanguage();
@@ -204,9 +201,12 @@ function GuestPageContent() {
   const wakeWord = useWakeWord({
     enabled: WAKE_WORD_ENABLED && state === "idle",
     onWake: (command) => {
+      hasArmedWakeWordRef.current = true;
       playCue("activation");
       setErrorMessage(null);
+      setHintMessage(null);
       setParsedResult(null);
+      setPartialLines(null);
       setLastTranscript(command ?? "");
 
       if (command) {
@@ -243,7 +243,7 @@ function GuestPageContent() {
     setHistoryHiddenBefore(new Date().toISOString());
     setRoomNumber(room);
     setState("idle");
-    hasArmedWakeWordRef.current = true;
+    hasArmedWakeWordRef.current = false;
   }
 
   function handleStartListening() {
