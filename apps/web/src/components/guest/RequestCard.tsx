@@ -8,6 +8,7 @@ import {
   useGuestLanguage,
   type TranslationKey,
 } from "@/lib/guest-language";
+import { useEtaCountdown } from "@/hooks/useEtaCountdown";
 import { cn } from "@/lib/utils";
 import type { GuestRequest, RequestStatus } from "@/lib/types";
 
@@ -123,6 +124,7 @@ export function RequestCard({ request, isExpanded, onToggle }: RequestCardProps)
   const rejected = request.status === "rejected";
   const isPast = completed || rejected;
   const expanded = isExpanded ?? internalExpanded;
+  const eta = useEtaCountdown(request.etaAt, request.status);
 
   const handleClick = useCallback(() => {
     if (onToggle) {
@@ -171,6 +173,14 @@ export function RequestCard({ request, isExpanded, onToggle }: RequestCardProps)
           <span className="text-[0.65rem] text-[var(--guest-text-dim)]">
             {formatTimeAgo(request.createdAt, getGuestLocale(language))}
           </span>
+          {eta.label ? (
+            <span
+              className="text-[0.65rem] font-medium"
+              style={{ color: config.color }}
+            >
+              ETA {eta.label}
+            </span>
+          ) : null}
         </div>
 
         <p className="mb-1 text-[0.65rem] uppercase tracking-wider text-[var(--guest-text-dim)]">

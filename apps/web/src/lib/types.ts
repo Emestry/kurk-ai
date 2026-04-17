@@ -26,6 +26,7 @@ export interface GuestRequest {
   items: RequestItem[];
   createdAt: string;
   updatedAt: string;
+  etaAt: string | null;
 }
 
 export interface ParseRequestResponse {

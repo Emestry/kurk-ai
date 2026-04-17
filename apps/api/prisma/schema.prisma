@@ -240,6 +240,7 @@ model GuestRequest {
   guestMessage        String?
   staffNote           String?
   etaMinutes          Int?
+  etaAt               DateTime?
   status              RequestStatus          @default(received)
   rejectionReason     String?
   createdAt           DateTime               @default(now())

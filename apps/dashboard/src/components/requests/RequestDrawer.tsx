@@ -1,6 +1,9 @@
 "use client";
 
 import { format } from "date-fns";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import { ApiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -9,6 +12,8 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { useEtaCountdown } from "@/hooks/useEtaCountdown";
+import { useExtendRequestEtaMutation } from "@/hooks/useRequestsQuery";
 import type { GuestRequestDTO } from "@/lib/types";
 
 interface Props {
@@ -30,6 +35,17 @@ export function RequestDrawer({
   const canDeliver = request.status === "in_progress";
   const canReject =
     request.status === "received" || request.status === "in_progress";
+  const eta = useEtaCountdown(request.etaAt, request.status);
+  const extend = useExtendRequestEtaMutation();
+
+  async function onExtend() {
+    try {
+      await extend.mutateAsync({ requestId: request.id, minutes: 5 });
+      toast.success("ETA extended by 5 min");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Extend failed");
+    }
+  }
 
   return (
     <Sheet open onOpenChange={onClose}>
@@ -86,12 +102,21 @@ export function RequestDrawer({
             ) : null}
           </section>
 
-          {request.etaMinutes != null ? (
+          {eta.label ? (
             <section>
               <h3 className="mb-1 text-sm font-semibold">ETA</h3>
-              <p className="text-sm text-foreground/80">
-                {request.etaMinutes} minutes
-              </p>
+              <div className="flex items-center gap-3">
+                <p className="text-sm text-foreground/80">{eta.label}</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={onExtend}
+                  disabled={extend.isPending}
+                >
+                  <Plus className="mr-1 h-3.5 w-3.5" />
+                  {extend.isPending ? "Adding…" : "5 min"}
+                </Button>
+              </div>
             </section>
           ) : null}
 

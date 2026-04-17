@@ -63,6 +63,39 @@ export function useUpdateRequestMutation() {
 }
 
 /**
+ * Pushes the ETA deadline out by N minutes on the server (defaulting to 5
+ * when the side panel "+5 min" button is pressed). Uses the same cache
+ * update pattern as `useUpdateRequestMutation` so the countdown re-renders
+ * instantly without waiting for a WebSocket round-trip.
+ */
+export function useExtendRequestEtaMutation() {
+  const qc = useQueryClient();
+  return useMutation<
+    GuestRequestDTO,
+    Error,
+    { requestId: string; minutes?: number }
+  >({
+    mutationFn: async ({ requestId, minutes = 5 }) => {
+      const raw = await apiFetch<unknown>(
+        `/staff/requests/${requestId}/eta/extend`,
+        { method: "POST", body: { minutes } },
+      );
+      return mapStaffRequest(raw);
+    },
+    onSuccess: (updated) => {
+      qc.setQueryData<GuestRequestDTO[]>(queryKeys.requests.list(), (prev) => {
+        if (!prev) return prev;
+        const index = prev.findIndex((r) => r.id === updated.id);
+        if (index === -1) return [updated, ...prev];
+        const next = prev.slice();
+        next[index] = updated;
+        return next;
+      });
+    },
+  });
+}
+
+/**
  * Raw shape returned by GET /staff/requests (mirrors RequestSummary from
  * apps/api/src/services/request-service.ts → listStaffRequests).
  *
@@ -88,6 +121,7 @@ interface RawRequestSummary {
   guestMessage: string | null;
   staffNote: string | null;
   etaMinutes: number | null;
+  etaAt: string | Date | null;
   rejectionReason: string | null;
   createdAt: string | Date;
   updatedAt: string | Date;
@@ -124,6 +158,12 @@ export function mapStaffRequest(raw: unknown): GuestRequestDTO {
     guestMessage: r.guestMessage,
     staffNote: r.staffNote,
     etaMinutes: r.etaMinutes,
+    etaAt:
+      r.etaAt == null
+        ? null
+        : typeof r.etaAt === "string"
+          ? r.etaAt
+          : r.etaAt.toISOString(),
     status: r.status as GuestRequestDTO["status"],
     rejectionReason: r.rejectionReason,
     createdAt: typeof r.createdAt === "string" ? r.createdAt : r.createdAt.toISOString(),

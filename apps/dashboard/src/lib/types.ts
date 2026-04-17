@@ -92,6 +92,7 @@ export interface GuestRequestDTO {
   guestMessage: string | null;
   staffNote: string | null;
   etaMinutes: number | null;
+  etaAt: string | null;
   status: RequestStatus;
   rejectionReason: string | null;
   createdAt: string;

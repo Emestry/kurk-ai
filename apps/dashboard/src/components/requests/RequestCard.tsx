@@ -4,6 +4,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { Mic, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/shared/StatusBadge";
+import { useEtaCountdown } from "@/hooks/useEtaCountdown";
 import type { GuestRequestDTO, RequestStatus } from "@/lib/types";
 
 interface Props {
@@ -28,6 +29,7 @@ export function RequestCard({
   const relative = formatDistanceToNowStrict(new Date(request.createdAt), {
     addSuffix: true,
   });
+  const eta = useEtaCountdown(request.etaAt, request.status);
 
   return (
     <article
@@ -73,9 +75,7 @@ export function RequestCard({
             {request.category.replace("_", " ")}
           </span>
         ) : null}
-        {request.etaMinutes != null ? (
-          <span>ETA {request.etaMinutes} min</span>
-        ) : null}
+        {eta.label ? <span>ETA {eta.label}</span> : null}
       </div>
 
       {request.staffNote ? (

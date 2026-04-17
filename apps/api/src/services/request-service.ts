@@ -56,6 +56,7 @@ export interface RequestSummary {
   guestMessage: string | null;
   staffNote: string | null;
   etaMinutes: number | null;
+  etaAt: Date | null;
   rejectionReason: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -87,6 +88,7 @@ function mapRequestSummary(request: {
   guestMessage: string | null;
   staffNote: string | null;
   etaMinutes: number | null;
+  etaAt: Date | null;
   rejectionReason: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -114,6 +116,7 @@ function mapRequestSummary(request: {
     guestMessage: request.guestMessage,
     staffNote: request.staffNote,
     etaMinutes: request.etaMinutes,
+    etaAt: request.etaAt,
     rejectionReason: request.rejectionReason,
     createdAt: request.createdAt,
     updatedAt: request.updatedAt,
@@ -531,10 +534,16 @@ export async function updateStaffRequest(input: UpdateStaffRequestInput) {
         throw new ApiError(400, "ETA must be a non-negative integer");
       }
 
+      const etaAt =
+        input.etaMinutes === null
+          ? null
+          : new Date(Date.now() + input.etaMinutes * 60_000);
+
       await db.guestRequest.update({
         where: { id: request.id },
         data: {
           etaMinutes: input.etaMinutes,
+          etaAt,
         },
       });
 
@@ -546,6 +555,7 @@ export async function updateStaffRequest(input: UpdateStaffRequestInput) {
           actorType: RequestActorType.staff,
           payload: {
             etaMinutes: input.etaMinutes,
+            etaAt: etaAt?.toISOString() ?? null,
           },
         },
       });
@@ -793,6 +803,93 @@ export async function updateStaffRequest(input: UpdateStaffRequestInput) {
         actorType: RequestActorType.staff,
         payload: {
           status: nextStatus,
+        },
+      },
+    });
+
+    return mapRequestSummary(updated);
+  });
+
+  publishRealtimeEvent({
+    type: toRealtimeType(result.status),
+    requestId: result.requestId,
+    roomId: result.roomId,
+    status: result.status,
+    occurredAt: new Date().toISOString(),
+    data: {
+      roomNumber: result.roomNumber,
+      guestMessage: result.guestMessage,
+      staffNote: result.staffNote,
+      etaMinutes: result.etaMinutes,
+      rejectionReason: result.rejectionReason,
+      category: result.category,
+    },
+  });
+
+  return result;
+}
+
+/**
+ * Pushes the ETA deadline out by `minutes` from whichever is later: the
+ * current deadline or now. Used for the staff "+5 min" button.
+ */
+export async function extendStaffRequestEta(input: {
+  requestId: string;
+  minutes: number;
+}) {
+  if (!Number.isInteger(input.minutes) || input.minutes <= 0) {
+    throw new ApiError(400, "Minutes must be a positive integer");
+  }
+
+  const result = await withDbTransaction(async (db) => {
+    const request = await db.guestRequest.findUnique({
+      where: { id: input.requestId },
+    });
+
+    if (!request) {
+      throw new ApiError(404, "Request not found");
+    }
+
+    const now = new Date();
+    const base = request.etaAt && request.etaAt > now ? request.etaAt : now;
+    const etaAt = new Date(base.getTime() + input.minutes * 60_000);
+    const etaMinutes = Math.max(
+      0,
+      Math.ceil((etaAt.getTime() - now.getTime()) / 60_000),
+    );
+
+    await db.guestRequest.update({
+      where: { id: request.id },
+      data: { etaAt, etaMinutes },
+    });
+
+    await db.requestEvent.create({
+      data: {
+        requestId: request.id,
+        roomId: request.roomId,
+        type: RequestEventType.eta_set,
+        actorType: RequestActorType.staff,
+        payload: {
+          etaMinutes,
+          etaAt: etaAt.toISOString(),
+          extendedBy: input.minutes,
+        },
+      },
+    });
+
+    const updated = await db.guestRequest.findUniqueOrThrow({
+      where: { id: request.id },
+      include: {
+        room: true,
+        items: {
+          orderBy: { createdAt: "asc" },
+          include: {
+            inventoryItem: true,
+            reservations: {
+              where: { status: "active" },
+              orderBy: { createdAt: "asc" },
+            },
+          },
         },
       },
     });

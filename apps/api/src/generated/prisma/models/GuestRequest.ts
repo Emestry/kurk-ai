@@ -45,6 +45,7 @@ export type GuestRequestMinAggregateOutputType = {
   guestMessage: string | null
   staffNote: string | null
   etaMinutes: number | null
+  etaAt: Date | null
   status: $Enums.RequestStatus | null
   rejectionReason: string | null
   createdAt: Date | null
@@ -62,6 +63,7 @@ export type GuestRequestMaxAggregateOutputType = {
   guestMessage: string | null
   staffNote: string | null
   etaMinutes: number | null
+  etaAt: Date | null
   status: $Enums.RequestStatus | null
   rejectionReason: string | null
   createdAt: Date | null
@@ -79,6 +81,7 @@ export type GuestRequestCountAggregateOutputType = {
   guestMessage: number
   staffNote: number
   etaMinutes: number
+  etaAt: number
   status: number
   rejectionReason: number
   createdAt: number
@@ -106,6 +109,7 @@ export type GuestRequestMinAggregateInputType = {
   guestMessage?: true
   staffNote?: true
   etaMinutes?: true
+  etaAt?: true
   status?: true
   rejectionReason?: true
   createdAt?: true
@@ -123,6 +127,7 @@ export type GuestRequestMaxAggregateInputType = {
   guestMessage?: true
   staffNote?: true
   etaMinutes?: true
+  etaAt?: true
   status?: true
   rejectionReason?: true
   createdAt?: true
@@ -140,6 +145,7 @@ export type GuestRequestCountAggregateInputType = {
   guestMessage?: true
   staffNote?: true
   etaMinutes?: true
+  etaAt?: true
   status?: true
   rejectionReason?: true
   createdAt?: true
@@ -244,6 +250,7 @@ export type GuestRequestGroupByOutputType = {
   guestMessage: string | null
   staffNote: string | null
   etaMinutes: number | null
+  etaAt: Date | null
   status: $Enums.RequestStatus
   rejectionReason: string | null
   createdAt: Date
@@ -284,6 +291,7 @@ export type GuestRequestWhereInput = {
   guestMessage?: Prisma.StringNullableFilter<"GuestRequest"> | string | null
   staffNote?: Prisma.StringNullableFilter<"GuestRequest"> | string | null
   etaMinutes?: Prisma.IntNullableFilter<"GuestRequest"> | number | null
+  etaAt?: Prisma.DateTimeNullableFilter<"GuestRequest"> | Date | string | null
   status?: Prisma.EnumRequestStatusFilter<"GuestRequest"> | $Enums.RequestStatus
   rejectionReason?: Prisma.StringNullableFilter<"GuestRequest"> | string | null
   createdAt?: Prisma.DateTimeFilter<"GuestRequest"> | Date | string
@@ -307,6 +315,7 @@ export type GuestRequestOrderByWithRelationInput = {
   guestMessage?: Prisma.SortOrderInput | Prisma.SortOrder
   staffNote?: Prisma.SortOrderInput | Prisma.SortOrder
   etaMinutes?: Prisma.SortOrderInput | Prisma.SortOrder
+  etaAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   rejectionReason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -333,6 +342,7 @@ export type GuestRequestWhereUniqueInput = Prisma.AtLeast<{
   guestMessage?: Prisma.StringNullableFilter<"GuestRequest"> | string | null
   staffNote?: Prisma.StringNullableFilter<"GuestRequest"> | string | null
   etaMinutes?: Prisma.IntNullableFilter<"GuestRequest"> | number | null
+  etaAt?: Prisma.DateTimeNullableFilter<"GuestRequest"> | Date | string | null
   status?: Prisma.EnumRequestStatusFilter<"GuestRequest"> | $Enums.RequestStatus
   rejectionReason?: Prisma.StringNullableFilter<"GuestRequest"> | string | null
   createdAt?: Prisma.DateTimeFilter<"GuestRequest"> | Date | string
@@ -356,6 +366,7 @@ export type GuestRequestOrderByWithAggregationInput = {
   guestMessage?: Prisma.SortOrderInput | Prisma.SortOrder
   staffNote?: Prisma.SortOrderInput | Prisma.SortOrder
   etaMinutes?: Prisma.SortOrderInput | Prisma.SortOrder
+  etaAt?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   rejectionReason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -381,6 +392,7 @@ export type GuestRequestScalarWhereWithAggregatesInput = {
   guestMessage?: Prisma.StringNullableWithAggregatesFilter<"GuestRequest"> | string | null
   staffNote?: Prisma.StringNullableWithAggregatesFilter<"GuestRequest"> | string | null
   etaMinutes?: Prisma.IntNullableWithAggregatesFilter<"GuestRequest"> | number | null
+  etaAt?: Prisma.DateTimeNullableWithAggregatesFilter<"GuestRequest"> | Date | string | null
   status?: Prisma.EnumRequestStatusWithAggregatesFilter<"GuestRequest"> | $Enums.RequestStatus
   rejectionReason?: Prisma.StringNullableWithAggregatesFilter<"GuestRequest"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"GuestRequest"> | Date | string
@@ -396,6 +408,7 @@ export type GuestRequestCreateInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -419,6 +432,7 @@ export type GuestRequestUncheckedCreateInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -438,6 +452,7 @@ export type GuestRequestUpdateInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -461,6 +476,7 @@ export type GuestRequestUncheckedUpdateInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -482,6 +498,7 @@ export type GuestRequestCreateManyInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -497,6 +514,7 @@ export type GuestRequestUpdateManyMutationInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -514,6 +532,7 @@ export type GuestRequestUncheckedUpdateManyInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -541,6 +560,7 @@ export type GuestRequestCountOrderByAggregateInput = {
   guestMessage?: Prisma.SortOrder
   staffNote?: Prisma.SortOrder
   etaMinutes?: Prisma.SortOrder
+  etaAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   rejectionReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -562,6 +582,7 @@ export type GuestRequestMaxOrderByAggregateInput = {
   guestMessage?: Prisma.SortOrder
   staffNote?: Prisma.SortOrder
   etaMinutes?: Prisma.SortOrder
+  etaAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   rejectionReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -579,6 +600,7 @@ export type GuestRequestMinOrderByAggregateInput = {
   guestMessage?: Prisma.SortOrder
   staffNote?: Prisma.SortOrder
   etaMinutes?: Prisma.SortOrder
+  etaAt?: Prisma.SortOrder
   status?: Prisma.SortOrder
   rejectionReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -770,6 +792,7 @@ export type GuestRequestCreateWithoutRoomInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -791,6 +814,7 @@ export type GuestRequestUncheckedCreateWithoutRoomInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -841,6 +865,7 @@ export type GuestRequestScalarWhereInput = {
   guestMessage?: Prisma.StringNullableFilter<"GuestRequest"> | string | null
   staffNote?: Prisma.StringNullableFilter<"GuestRequest"> | string | null
   etaMinutes?: Prisma.IntNullableFilter<"GuestRequest"> | number | null
+  etaAt?: Prisma.DateTimeNullableFilter<"GuestRequest"> | Date | string | null
   status?: Prisma.EnumRequestStatusFilter<"GuestRequest"> | $Enums.RequestStatus
   rejectionReason?: Prisma.StringNullableFilter<"GuestRequest"> | string | null
   createdAt?: Prisma.DateTimeFilter<"GuestRequest"> | Date | string
@@ -856,6 +881,7 @@ export type GuestRequestCreateWithoutRoomDeviceSessionInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -877,6 +903,7 @@ export type GuestRequestUncheckedCreateWithoutRoomDeviceSessionInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -922,6 +949,7 @@ export type GuestRequestCreateWithoutItemsInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -944,6 +972,7 @@ export type GuestRequestUncheckedCreateWithoutItemsInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -978,6 +1007,7 @@ export type GuestRequestUpdateWithoutItemsInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1000,6 +1030,7 @@ export type GuestRequestUncheckedUpdateWithoutItemsInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1018,6 +1049,7 @@ export type GuestRequestCreateWithoutEventsInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -1040,6 +1072,7 @@ export type GuestRequestUncheckedCreateWithoutEventsInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -1074,6 +1107,7 @@ export type GuestRequestUpdateWithoutEventsInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1096,6 +1130,7 @@ export type GuestRequestUncheckedUpdateWithoutEventsInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1114,6 +1149,7 @@ export type GuestRequestCreateWithoutReservationsInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -1136,6 +1172,7 @@ export type GuestRequestUncheckedCreateWithoutReservationsInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -1170,6 +1207,7 @@ export type GuestRequestUpdateWithoutReservationsInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1192,6 +1230,7 @@ export type GuestRequestUncheckedUpdateWithoutReservationsInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1210,6 +1249,7 @@ export type GuestRequestCreateWithoutMovementsInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -1232,6 +1272,7 @@ export type GuestRequestUncheckedCreateWithoutMovementsInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -1266,6 +1307,7 @@ export type GuestRequestUpdateWithoutMovementsInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1288,6 +1330,7 @@ export type GuestRequestUncheckedUpdateWithoutMovementsInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1307,6 +1350,7 @@ export type GuestRequestCreateManyRoomInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -1322,6 +1366,7 @@ export type GuestRequestUpdateWithoutRoomInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1343,6 +1388,7 @@ export type GuestRequestUncheckedUpdateWithoutRoomInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1363,6 +1409,7 @@ export type GuestRequestUncheckedUpdateManyWithoutRoomInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1379,6 +1426,7 @@ export type GuestRequestCreateManyRoomDeviceSessionInput = {
   guestMessage?: string | null
   staffNote?: string | null
   etaMinutes?: number | null
+  etaAt?: Date | string | null
   status?: $Enums.RequestStatus
   rejectionReason?: string | null
   createdAt?: Date | string
@@ -1394,6 +1442,7 @@ export type GuestRequestUpdateWithoutRoomDeviceSessionInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1415,6 +1464,7 @@ export type GuestRequestUncheckedUpdateWithoutRoomDeviceSessionInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1435,6 +1485,7 @@ export type GuestRequestUncheckedUpdateManyWithoutRoomDeviceSessionInput = {
   guestMessage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   staffNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   etaMinutes?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  etaAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumRequestStatusFieldUpdateOperationsInput | $Enums.RequestStatus
   rejectionReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1510,6 +1561,7 @@ export type GuestRequestSelect<ExtArgs extends runtime.Types.Extensions.Internal
   guestMessage?: boolean
   staffNote?: boolean
   etaMinutes?: boolean
+  etaAt?: boolean
   status?: boolean
   rejectionReason?: boolean
   createdAt?: boolean
@@ -1534,6 +1586,7 @@ export type GuestRequestSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   guestMessage?: boolean
   staffNote?: boolean
   etaMinutes?: boolean
+  etaAt?: boolean
   status?: boolean
   rejectionReason?: boolean
   createdAt?: boolean
@@ -1553,6 +1606,7 @@ export type GuestRequestSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   guestMessage?: boolean
   staffNote?: boolean
   etaMinutes?: boolean
+  etaAt?: boolean
   status?: boolean
   rejectionReason?: boolean
   createdAt?: boolean
@@ -1572,13 +1626,14 @@ export type GuestRequestSelectScalar = {
   guestMessage?: boolean
   staffNote?: boolean
   etaMinutes?: boolean
+  etaAt?: boolean
   status?: boolean
   rejectionReason?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type GuestRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "roomId" | "roomDeviceSessionId" | "source" | "rawText" | "normalizedText" | "category" | "guestMessage" | "staffNote" | "etaMinutes" | "status" | "rejectionReason" | "createdAt" | "updatedAt", ExtArgs["result"]["guestRequest"]>
+export type GuestRequestOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "roomId" | "roomDeviceSessionId" | "source" | "rawText" | "normalizedText" | "category" | "guestMessage" | "staffNote" | "etaMinutes" | "etaAt" | "status" | "rejectionReason" | "createdAt" | "updatedAt", ExtArgs["result"]["guestRequest"]>
 export type GuestRequestInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   room?: boolean | Prisma.RoomDefaultArgs<ExtArgs>
   roomDeviceSession?: boolean | Prisma.GuestRequest$roomDeviceSessionArgs<ExtArgs>
@@ -1618,6 +1673,7 @@ export type $GuestRequestPayload<ExtArgs extends runtime.Types.Extensions.Intern
     guestMessage: string | null
     staffNote: string | null
     etaMinutes: number | null
+    etaAt: Date | null
     status: $Enums.RequestStatus
     rejectionReason: string | null
     createdAt: Date
@@ -2061,6 +2117,7 @@ export interface GuestRequestFieldRefs {
   readonly guestMessage: Prisma.FieldRef<"GuestRequest", 'String'>
   readonly staffNote: Prisma.FieldRef<"GuestRequest", 'String'>
   readonly etaMinutes: Prisma.FieldRef<"GuestRequest", 'Int'>
+  readonly etaAt: Prisma.FieldRef<"GuestRequest", 'DateTime'>
   readonly status: Prisma.FieldRef<"GuestRequest", 'RequestStatus'>
   readonly rejectionReason: Prisma.FieldRef<"GuestRequest", 'String'>
   readonly createdAt: Prisma.FieldRef<"GuestRequest", 'DateTime'>

@@ -74,6 +74,7 @@ export function useGuestSocket(
                 notes: current.request.staffNote ?? current.request.rejectionReason,
                 createdAt: current.request.createdAt,
                 updatedAt: current.request.updatedAt,
+                etaAt: current.request.etaAt,
                 items: current.request.items.map((item) => ({
                   inventory_item_id: item.inventoryItemId,
                   name: item.inventoryItemName,

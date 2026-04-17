@@ -16,6 +16,7 @@ import {
 } from "@/services/inventory-service.js";
 import { getMonthlyUsageReport } from "@/services/report-service.js";
 import {
+  extendStaffRequestEta,
   listStaffRequests,
   updateStaffRequest,
   type UpdateStaffRequestInput,
@@ -143,6 +144,18 @@ export function createStaffRoutes(options: StaffRouteOptions = {}) {
     }
 
     const request = await updateStaffRequest(body);
+    return c.json(request);
+  });
+
+  staff.post("/requests/:requestId/eta/extend", async (c) => {
+    const body = await c.req
+      .json<{ minutes?: number }>()
+      .catch(() => ({ minutes: undefined }));
+    const minutes = body?.minutes ?? 5;
+    const request = await extendStaffRequestEta({
+      requestId: c.req.param("requestId"),
+      minutes,
+    });
     return c.json(request);
   });
 

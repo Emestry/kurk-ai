@@ -25,6 +25,7 @@ export interface RequestSummary {
   guestMessage: string | null;
   staffNote: string | null;
   etaMinutes: number | null;
+  etaAt: string | null;
   rejectionReason: string | null;
   createdAt: string;
   updatedAt: string;
@@ -301,6 +302,7 @@ function mapSummaryToLegacyRequest(request: RequestSummary): GuestRequest {
     notes: request.staffNote ?? request.rejectionReason,
     createdAt: request.createdAt,
     updatedAt: request.updatedAt,
+    etaAt: request.etaAt,
     items: request.items.map((item) => ({
       inventory_item_id: item.inventoryItemId,
       name: item.inventoryItemName,

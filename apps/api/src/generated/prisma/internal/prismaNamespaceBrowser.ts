@@ -215,6 +215,7 @@ export const GuestRequestScalarFieldEnum = {
   guestMessage: 'guestMessage',
   staffNote: 'staffNote',
   etaMinutes: 'etaMinutes',
+  etaAt: 'etaAt',
   status: 'status',
   rejectionReason: 'rejectionReason',
   createdAt: 'createdAt',
