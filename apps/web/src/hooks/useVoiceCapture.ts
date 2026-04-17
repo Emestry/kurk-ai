@@ -74,6 +74,10 @@ export function useVoiceCapture(options: UseVoiceCaptureOptions = {}): UseVoiceC
   const transcriptSnapshotRef = useRef("");
   const audioChunksRef = useRef<Blob[]>([]);
   const stoppedRef = useRef(false);
+  // Monotonically bumped once per successful start() so that in-flight
+  // transcription callbacks from a previous recording can detect they are
+  // stale and bail out instead of polluting the current session.
+  const recordingIdRef = useRef(0);
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const silenceStartedAtRef = useRef<number | null>(null);
@@ -157,9 +161,20 @@ export function useVoiceCapture(options: UseVoiceCaptureOptions = {}): UseVoiceC
     audioChunksRef.current = [];
     pendingChunksRef.current = 0;
     stoppedRef.current = false;
+    recordingIdRef.current += 1;
+    const recordingId = recordingIdRef.current;
 
     try {
       const stream = await window.navigator.mediaDevices.getUserMedia({ audio: true });
+
+      // Another start() raced past us while we were awaiting the mic — drop
+      // this stream so we don't end up with two live recorders fighting over
+      // shared refs.
+      if (recordingIdRef.current !== recordingId) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+
       const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
         ? "audio/webm;codecs=opus"
         : "audio/webm";
@@ -218,6 +233,13 @@ export function useVoiceCapture(options: UseVoiceCaptureOptions = {}): UseVoiceC
           return;
         }
 
+        // A newer recording is already in progress — discard this chunk so we
+        // don't push it onto the current session's audio buffer or kick off a
+        // transcription whose result would overwrite live state.
+        if (recordingIdRef.current !== recordingId) {
+          return;
+        }
+
         audioChunksRef.current.push(event.data);
         pendingChunksRef.current += 1;
 
@@ -230,6 +252,10 @@ export function useVoiceCapture(options: UseVoiceCaptureOptions = {}): UseVoiceC
               fileName: `guest-progress-${Date.now()}.webm`,
             });
 
+            if (recordingIdRef.current !== recordingId) {
+              return;
+            }
+
             const text = result.transcript.trim();
 
             if (text) {
@@ -237,10 +263,15 @@ export function useVoiceCapture(options: UseVoiceCaptureOptions = {}): UseVoiceC
               setInterimTranscript(text);
             }
           } catch (transcriptionError) {
+            if (recordingIdRef.current !== recordingId) {
+              return;
+            }
             reportError(getFriendlyVoiceError(transcriptionError));
           } finally {
-            pendingChunksRef.current -= 1;
-            finalizeIfReady();
+            if (recordingIdRef.current === recordingId) {
+              pendingChunksRef.current -= 1;
+              finalizeIfReady();
+            }
           }
         })();
       };
