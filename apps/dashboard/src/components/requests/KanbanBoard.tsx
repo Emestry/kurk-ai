@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api";
 import { useRequestsQuery, useUpdateRequestMutation } from "@/hooks/useRequestsQuery";
@@ -51,9 +51,16 @@ export function KanbanBoard() {
     (donePage + 1) * DONE_PAGE_SIZE,
   );
 
+  useEffect(() => {
+    if (!doneColumnRef.current) {
+      return;
+    }
+
+    doneColumnRef.current.scrollTop = 0;
+  }, [donePage]);
+
   function handleDonePageChange(nextPage: number) {
     setDonePage(nextPage);
-    doneColumnRef.current?.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   async function markDelivered(request: GuestRequestDTO) {
