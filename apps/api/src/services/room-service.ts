@@ -1,8 +1,14 @@
 import { randomUUID } from "node:crypto";
+import {
+  RequestActorType,
+  RequestEventType,
+  RequestStatus,
+} from "@/generated/prisma/enums.js";
 import type { DbClient } from "@/lib/db.js";
 import { withDbTransaction } from "@/lib/db.js";
 import { ApiError } from "@/lib/errors.js";
 import { publishRealtimeEvent } from "@/lib/realtime.js";
+import { releaseReservations } from "@/services/inventory-service.js";
 
 export interface ActiveRoomLookup {
   db?: DbClient;
@@ -336,7 +342,7 @@ export async function getActiveRoomDeviceSession(token?: string) {
  * Revokes a room device session so future guest requests from that tablet are rejected.
  */
 export async function revokeRoomDeviceSession(sessionId: string) {
-  const revoked = await withDbTransaction(async (db) => {
+  const result = await withDbTransaction(async (db) => {
     const session = await db.roomDeviceSession.findUnique({
       where: { id: sessionId },
     });
@@ -345,7 +351,7 @@ export async function revokeRoomDeviceSession(sessionId: string) {
       throw new ApiError(404, "Room device session not found");
     }
 
-    return db.roomDeviceSession.update({
+    const revoked = await db.roomDeviceSession.update({
       where: { id: sessionId },
       data: {
         revokedAt: new Date(),
@@ -355,6 +361,73 @@ export async function revokeRoomDeviceSession(sessionId: string) {
         roomDevice: true,
       },
     });
+
+    const activeRequests = await db.guestRequest.findMany({
+      where: {
+        roomId: revoked.roomId,
+        status: {
+          in: [RequestStatus.received, RequestStatus.in_progress],
+        },
+      },
+      include: {
+        items: {
+          orderBy: { createdAt: "asc" },
+          include: {
+            reservations: {
+              where: { status: "active" },
+              orderBy: { createdAt: "asc" },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    const rejectionReason = "Room session was revoked before the request was completed.";
+
+    for (const request of activeRequests) {
+      const reservationIds = request.items.flatMap((item) =>
+        item.reservations.map((reservation) => reservation.id),
+      );
+
+      if (reservationIds.length > 0) {
+        await releaseReservations(db, reservationIds, rejectionReason);
+      }
+
+      await db.guestRequest.update({
+        where: { id: request.id },
+        data: {
+          status: RequestStatus.rejected,
+          rejectionReason,
+          guestMessage: rejectionReason,
+          etaMinutes: null,
+          etaAt: null,
+        },
+      });
+
+      await db.requestEvent.create({
+        data: {
+          requestId: request.id,
+          roomId: request.roomId,
+          type: RequestEventType.rejected,
+          actorType: RequestActorType.system,
+          payload: {
+            reason: rejectionReason,
+            source: "room_session_revoked",
+          },
+        },
+      });
+    }
+
+    return {
+      revoked,
+      rejectedRequests: activeRequests.map((request) => ({
+        requestId: request.id,
+        roomId: request.roomId,
+        roomNumber: revoked.room.number,
+        rejectionReason,
+      })),
+    };
   });
 
   // Push a live event so any open SSE stream tied to this session can close
@@ -362,16 +435,32 @@ export async function revokeRoomDeviceSession(sessionId: string) {
   publishRealtimeEvent({
     type: "room.session.revoked",
     requestId: "",
-    roomId: revoked.roomId,
+    roomId: result.revoked.roomId,
     occurredAt: new Date().toISOString(),
     data: {
-      sessionId: revoked.id,
-      roomDeviceId: revoked.roomDeviceId,
-      roomId: revoked.roomId,
+      sessionId: result.revoked.id,
+      roomDeviceId: result.revoked.roomDeviceId,
+      roomId: result.revoked.roomId,
     },
   });
 
-  return revoked;
+  for (const request of result.rejectedRequests) {
+    publishRealtimeEvent({
+      type: "request.rejected",
+      requestId: request.requestId,
+      roomId: request.roomId,
+      status: RequestStatus.rejected,
+      occurredAt: new Date().toISOString(),
+      data: {
+        roomNumber: request.roomNumber,
+        rejectionReason: request.rejectionReason,
+        guestMessage: request.rejectionReason,
+        source: "room_session_revoked",
+      },
+    });
+  }
+
+  return result.revoked;
 }
 
 /**

@@ -53,6 +53,7 @@ async function createRoomSession() {
 
 test("admin can manage rooms, devices, and revoke room sessions", async () => {
   const room = await prisma.room.findUniqueOrThrow({ where: { number: "201" } });
+  const towel = await prisma.inventoryItem.findUniqueOrThrow({ where: { sku: "INV-001" } });
 
   const listResponse = await protectedApp.request("http://localhost/admin/rooms");
   assert.equal(listResponse.status, 200);
@@ -105,6 +106,22 @@ test("admin can manage rooms, devices, and revoke room sessions", async () => {
 
   const session = await createRoomSession();
 
+  const requestResponse = await app.request("http://localhost/guest/requests", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-room-session-token": session.token,
+    },
+    body: JSON.stringify({
+      source: "text",
+      rawText: "Please send a towel",
+      items: [{ inventoryItemId: towel.id, quantity: 1 }],
+    }),
+  });
+
+  assert.equal(requestResponse.status, 201);
+  const requestPayload = await requestResponse.json();
+
   const sessionsResponse = await protectedApp.request("http://localhost/admin/device-sessions");
   assert.equal(sessionsResponse.status, 200);
   const sessionsPayload = await sessionsResponse.json();
@@ -122,6 +139,16 @@ test("admin can manage rooms, devices, and revoke room sessions", async () => {
   );
 
   assert.equal(revokeResponse.status, 200);
+
+  const revokedRequest = await prisma.guestRequest.findUniqueOrThrow({
+    where: { id: requestPayload.requestId },
+  });
+
+  assert.equal(revokedRequest.status, "rejected");
+  assert.equal(
+    revokedRequest.rejectionReason,
+    "Room session was revoked before the request was completed.",
+  );
 
   const currentResponse = await app.request("http://localhost/guest/requests/current", {
     headers: {
