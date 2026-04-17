@@ -56,6 +56,13 @@ function GuestPageContent() {
     try {
       const result = await parseRequest(roomNumber!, transcript);
 
+      if (result.clarification) {
+        setParsedResult(result);
+        setErrorMessage(null);
+        setState("confirming");
+        return;
+      }
+
       if (result.items.length === 0) {
         playCue("mismatch");
         setParsedResult(null);
@@ -198,6 +205,37 @@ function GuestPageContent() {
     }
   }
 
+  async function handleClarifySelect(item: {
+    inventory_item_id: string;
+    name: string;
+    quantity: number;
+  }) {
+    if (!parsedResult || !roomNumber) return;
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const newRequest = await createRequest(
+        roomNumber,
+        lastTranscript,
+        [item],
+        parsedResult.category,
+      );
+      playCue("success");
+      setRequests((prev) => [newRequest, ...prev.filter((entry) => entry.id !== newRequest.id)]);
+      setParsedResult(null);
+      setLastTranscript("");
+      setState("idle");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to create request.";
+      playCue("error");
+      setErrorMessage(message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   function handleCancel() {
     setParsedResult(null);
     setLastTranscript("");
@@ -304,6 +342,7 @@ function GuestPageContent() {
               onConfirm={handleConfirm}
               onCancel={handleCancel}
               isSubmitting={isSubmitting}
+              onClarifySelect={handleClarifySelect}
             />
           )}
 

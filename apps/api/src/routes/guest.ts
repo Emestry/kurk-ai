@@ -150,6 +150,16 @@ guest.post("/parse-request", async (c) => {
       quantity: item.quantity,
     })),
     category: parsed.category,
+    clarification: parsed.clarification
+      ? {
+          prompt: parsed.clarification.prompt,
+          options: parsed.clarification.options.map((item) => ({
+            inventory_item_id: item.inventoryItemId,
+            name: item.inventoryItemName,
+            quantity: item.quantity,
+          })),
+        }
+      : undefined,
   });
 });
 

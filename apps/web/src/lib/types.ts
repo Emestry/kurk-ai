@@ -36,6 +36,14 @@ export interface ParseRequestResponse {
     quantity: number;
   }>;
   category: string;
+  clarification?: {
+    prompt: string;
+    options: Array<{
+      inventory_item_id: string;
+      name: string;
+      quantity: number;
+    }>;
+  };
 }
 
 export interface ParseRequestError {

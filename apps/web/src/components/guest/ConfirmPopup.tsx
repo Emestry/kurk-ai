@@ -11,6 +11,11 @@ interface ConfirmPopupProps {
   onConfirm: () => void;
   onCancel: () => void;
   isSubmitting?: boolean;
+  onClarifySelect: (item: {
+    inventory_item_id: string;
+    name: string;
+    quantity: number;
+  }) => void;
 }
 
 interface ErrorPopupProps {
@@ -24,15 +29,64 @@ export function ConfirmPopup({
   onConfirm,
   onCancel,
   isSubmitting = false,
+  onClarifySelect,
 }: ConfirmPopupProps) {
   const { language, t } = useGuestLanguage();
   const translatedTexts = useTranslatedTexts(
     [
       transcript,
+      parsed.clarification?.prompt ?? "",
       ...parsed.items.map((item) => item.name),
+      ...(parsed.clarification?.options.map((item) => item.name) ?? []),
     ].filter(Boolean),
     language,
   );
+  const clarification = parsed.clarification;
+
+  if (clarification) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-[var(--guest-bg)]/60 backdrop-blur-sm" />
+
+        <div className="relative z-10 mx-4 w-full max-w-sm rounded-3xl bg-[var(--guest-surface)] p-6">
+          <p className="mb-4 text-sm text-[var(--guest-text-muted)]">
+            &ldquo;{translatedTexts[transcript] ?? transcript}&rdquo;
+          </p>
+
+          <div className="mb-6 flex flex-col gap-2">
+            <p className="text-sm font-medium text-[var(--guest-text)]">
+              {translatedTexts[clarification.prompt] ?? clarification.prompt}
+            </p>
+            {clarification.options.map((item) => (
+              <Button
+                key={item.inventory_item_id}
+                onClick={() => onClarifySelect(item)}
+                className="justify-between rounded-xl bg-[var(--guest-bg)] px-4 py-6 text-[var(--guest-text)] hover:bg-[var(--guest-surface-hover)]"
+                variant="ghost"
+                size="lg"
+                disabled={isSubmitting}
+              >
+                <span>{translatedTexts[item.name] ?? item.name}</span>
+                <span className="text-sm font-medium text-[var(--guest-accent)]">
+                  x{item.quantity}
+                </span>
+              </Button>
+            ))}
+          </div>
+
+          <Button
+            onClick={onCancel}
+            variant="outline"
+            className="w-full border-[var(--guest-text-dim)]/20 bg-transparent text-[var(--guest-text-muted)] hover:bg-[var(--guest-surface-hover)]"
+            size="lg"
+            disabled={isSubmitting}
+          >
+            {t("confirm.cancel")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">

@@ -23,6 +23,10 @@ interface ParsedInventoryItem {
 interface ParsedGuestRequest {
   items: ParsedInventoryItem[];
   category: Category;
+  clarification?: {
+    prompt: string;
+    options: ParsedInventoryItem[];
+  };
 }
 
 interface InventoryEntry {
@@ -65,6 +69,88 @@ function inferQuantity(normalizedText: string, normalizedName: string): number {
   }
 
   return 1;
+}
+
+function singularizeToken(token: string) {
+  const normalized = token.trim().toLowerCase();
+
+  if (normalized.endsWith("ies") && normalized.length > 3) {
+    return `${normalized.slice(0, -3)}y`;
+  }
+
+  if (normalized.endsWith("ses") && normalized.length > 3) {
+    return normalized.slice(0, -2);
+  }
+
+  if (normalized.endsWith("s") && !normalized.endsWith("ss") && normalized.length > 2) {
+    return normalized.slice(0, -1);
+  }
+
+  return normalized;
+}
+
+function tokenizeNormalizedText(value: string) {
+  return normalizeForSubstring(value)
+    .split(" ")
+    .map((token) => singularizeToken(token))
+    .filter(Boolean);
+}
+
+function findAmbiguousInventoryOptions(
+  rawText: string,
+  inventory: InventoryEntry[],
+): ParsedGuestRequest["clarification"] | undefined {
+  const normalized = normalizeForSubstring(rawText);
+
+  if (!normalized) {
+    return undefined;
+  }
+
+  const transcriptTokens = new Set(tokenizeNormalizedText(normalized));
+
+  for (const token of transcriptTokens) {
+    if (token.length < 3) {
+      continue;
+    }
+
+    const matchingItems = inventory.filter((item) =>
+      tokenizeNormalizedText(item.name).includes(token),
+    );
+
+    if (matchingItems.length < 2) {
+      continue;
+    }
+
+    const options = matchingItems.map((item) => {
+      const normalizedName = normalizeForSubstring(item.name);
+
+      return {
+        inventoryItemId: item.id,
+        inventoryItemName: item.name,
+        quantity: inferQuantity(normalized, normalizedName) || 1,
+        category: item.category,
+      };
+    });
+
+    const distinguishingTokens = new Set(
+      options.flatMap((option) =>
+        tokenizeNormalizedText(option.inventoryItemName).filter((nameToken) => nameToken !== token),
+      ),
+    );
+
+    const hasSpecificModifier = [...distinguishingTokens].some((nameToken) => transcriptTokens.has(nameToken));
+
+    if (hasSpecificModifier) {
+      continue;
+    }
+
+    return {
+      prompt: `Which ${token} would you like?`,
+      options,
+    };
+  }
+
+  return undefined;
 }
 
 /**
@@ -131,6 +217,15 @@ export async function understandGuestRequest(rawText: string): Promise<ParsedGue
     name: item.name,
     category: item.category as Category,
   }));
+  const clarification = findAmbiguousInventoryOptions(normalized, inventory);
+
+  if (clarification) {
+    return {
+      items: [],
+      category: clarification.options[0]!.category,
+      clarification,
+    };
+  }
 
   const inventoryPrompt = inventory
     .map((item) => `${item.id} | ${item.name} | ${item.category}`)
