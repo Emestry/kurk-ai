@@ -151,6 +151,12 @@
   --guest-orb-c3: oklch(0.55 0.12 290);
 }
 
+html:has(.guest-theme),
+body:has(.guest-theme) {
+  background: oklch(0.13 0.005 260);
+  color-scheme: dark;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

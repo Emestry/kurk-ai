@@ -23,7 +23,7 @@ export function GuestView({
   onStopListening,
 }: GuestViewProps) {
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-5xl flex-col bg-[var(--guest-bg)]">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-5xl flex-col bg-[var(--guest-bg)]">
       <div className="p-4 pt-20">
         <ConnectionInfo status={connectionStatus} roomNumber={roomNumber} />
       </div>

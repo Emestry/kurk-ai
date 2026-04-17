@@ -433,7 +433,7 @@ function GuestPageContent() {
   }, [playCue, requests]);
 
   return (
-    <div className="guest-theme dark min-h-screen bg-[var(--guest-bg)]">
+    <div className="guest-theme dark min-h-[100dvh] bg-[var(--guest-bg)]">
       <LanguageToggle />
       <VoiceHintToast
         message={hintMessage}

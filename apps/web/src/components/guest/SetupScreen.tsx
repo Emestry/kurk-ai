@@ -68,7 +68,7 @@ export function SetupScreen({
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--guest-bg)] px-4">
+    <div className="flex min-h-[100dvh] items-center justify-center bg-[var(--guest-bg)] px-4">
       <form
         onSubmit={handleSubmit}
         className="flex w-full max-w-sm flex-col items-center gap-8 rounded-3xl bg-[var(--guest-surface)] p-10"
