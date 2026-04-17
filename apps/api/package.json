@@ -1,0 +1,40 @@
+{
+  "name": "api",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc && tsc-alias",
+    "start": "node dist/index.js",
+    "lint": "tsc --noEmit",
+    "test:inventory": "tsx --test src/testing/inventory-service.test.ts",
+    "test:requests": "tsx --test src/testing/request-creation.test.ts",
+    "test:guest": "tsx --test src/testing/guest-requests.test.ts",
+    "test:staff": "tsx --test src/testing/staff-workflow.test.ts",
+    "test:realtime": "tsx --test src/testing/realtime-events.test.ts",
+    "test:reporting": "tsx --test src/testing/reporting-stocktake.test.ts",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:reset": "prisma db push --force-reset && pnpm run db:seed"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.19.14",
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
+    "better-auth": "^1.6.5",
+    "dotenv": "^17.4.2",
+    "hono": "^4.12.14",
+    "openai": "^6.34.0",
+    "pg": "^8.20.0",
+    "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.17",
+    "@types/pg": "^8.20.0",
+    "@types/ws": "^8.18.1",
+    "prisma": "^7.7.0",
+    "tsc-alias": "^1.8.16",
+    "tsx": "^4.7.1",
+    "typescript": "^5.8.3"
+  }
+}
