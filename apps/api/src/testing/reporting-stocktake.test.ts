@@ -98,9 +98,10 @@ test("monthly report includes delivered usage and reconciliation summary", async
   assert.equal(reportResponse.status, 200);
 
   const report = await reportResponse.json();
-  assert.ok(report.totals.requestCount >= 1);
-  assert.ok(report.totals.reconciliationCount >= 1);
-  assert.ok(report.reconciliationSummary.length >= 1);
+  assert.ok(report.totalRequests >= 1);
+  assert.ok(report.reconciliations.length >= 1);
+  assert.equal(typeof report.averageResponseTimeSeconds, "number");
+  assert.ok(report.averageResponseTimeSeconds >= 0);
 });
 
 test("stocktake rejects discrepancies without reasons", async () => {

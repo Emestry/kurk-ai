@@ -200,9 +200,17 @@ export async function getMonthlyUsageReport(month: string) {
 
       // --- new: average response time (createdAt → first in_progress event) ---
       const inProgressEvent = request.events.find(
-        (e) =>
-          e.type === "status_changed" &&
-          (e.payload as Record<string, unknown> | null)?.["to"] === "in_progress",
+        (e) => {
+          if (e.type !== "status_changed") {
+            return false;
+          }
+
+          const payload = e.payload as Record<string, unknown> | null;
+          return (
+            payload?.["status"] === "in_progress" ||
+            payload?.["to"] === "in_progress"
+          );
+        },
       );
       if (inProgressEvent) {
         const secs =
