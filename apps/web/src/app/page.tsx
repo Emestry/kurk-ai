@@ -1,5 +1,2 @@
-import { redirect } from "next/navigation";
-
-export default function Home() {
-  redirect("/guest");
-}
+export { viewport } from "./guest/layout";
+export { default } from "./guest/page";
