@@ -95,16 +95,33 @@ export function useGuestSocket(
         source.addEventListener("request.updated", onEvent);
         source.addEventListener("request.rejected", onEvent);
         source.addEventListener("request.delivered", onEvent);
-        source.addEventListener("room.session.revoked", () => {
+        const revoke = () => {
           if (cancelled) return;
           source.close();
           eventSourceRef.current = null;
           setConnectionStatus("disconnected");
           onSessionRevoked();
-        });
-        source.onerror = () => {
-          if (!cancelled) {
-            setConnectionStatus("reconnecting");
+        };
+
+        source.addEventListener("room.session.revoked", revoke);
+        source.onerror = async () => {
+          if (cancelled) return;
+          setConnectionStatus("reconnecting");
+
+          // EventSource hides the HTTP status, so confirm whether the session
+          // was revoked by probing a cheap endpoint with the same token. A 401
+          // means staff disconnected the tablet; clear local state and route
+          // back to setup instead of reconnecting forever.
+          try {
+            const response = await fetch(`${getApiBaseUrl()}/guest/requests/current`, {
+              headers: { "x-room-session-token": roomSessionToken },
+              cache: "no-store",
+            });
+            if (!cancelled && response.status === 401) {
+              revoke();
+            }
+          } catch {
+            // Network error — leave EventSource to keep retrying.
           }
         };
       } catch {
