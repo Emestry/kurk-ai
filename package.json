@@ -1,0 +1,21 @@
+{
+  "name": "kurk-ai",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r dev",
+    "build": "pnpm -r build",
+    "start": "pnpm -r start",
+    "lint": "pnpm --filter web lint && pnpm --filter dashboard lint && pnpm --filter api lint",
+    "check": "pnpm lint && pnpm build",
+    "prepare": "husky",
+    "commitlint": "commitlint --edit",
+    "validate:branch": "node scripts/validate-branch-name.mjs"
+  },
+  "packageManager": "pnpm@10.29.3",
+  "devDependencies": {
+    "@commitlint/cli": "^20.1.0",
+    "@commitlint/config-conventional": "^20.0.0",
+    "husky": "^9.1.7",
+    "typescript": "^5.9.3"
+  }
+}
