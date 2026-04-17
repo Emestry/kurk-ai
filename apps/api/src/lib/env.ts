@@ -8,6 +8,7 @@ export interface AppEnv {
   databaseUrl: string;
   openAiApiKey?: string;
   port: number;
+  trustProxy: boolean;
 }
 
 export function getEnv(): AppEnv {
@@ -27,6 +28,7 @@ export function getEnv(): AppEnv {
     databaseUrl,
     openAiApiKey: process.env.OPENAI_API_KEY?.trim() || undefined,
     port,
+    trustProxy: parseBoolean(process.env.TRUST_PROXY, true),
   };
 }
 
@@ -49,6 +51,24 @@ export function parsePort(value?: string): number {
   }
 
   return parsed;
+}
+
+export function parseBoolean(value: string | undefined, fallback: boolean): boolean {
+  if (!value) {
+    return fallback;
+  }
+
+  const normalized = value.trim().toLowerCase();
+
+  if (["1", "true", "yes", "on"].includes(normalized)) {
+    return true;
+  }
+
+  if (["0", "false", "no", "off"].includes(normalized)) {
+    return false;
+  }
+
+  throw new Error(`Invalid boolean value: ${value}`);
 }
 
 function parseDatabaseSchema(databaseUrl: string) {
