@@ -1,7 +1,10 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const SESSION_COOKIE = "better-auth.session_token";
+const SESSION_COOKIES = [
+  "__Secure-better-auth.session_token",
+  "better-auth.session_token",
+];
 const LOGIN_PATH = "/login";
 
 export function proxy(request: NextRequest) {
@@ -18,7 +21,9 @@ export function proxy(request: NextRequest) {
   }
 
   // If there is no session cookie, redirect to /login.
-  const sessionCookie = request.cookies.get(SESSION_COOKIE);
+  const sessionCookie = SESSION_COOKIES
+    .map((name) => request.cookies.get(name))
+    .find((cookie) => cookie?.value);
   if (!sessionCookie?.value) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = LOGIN_PATH;
