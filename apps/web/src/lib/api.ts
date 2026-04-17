@@ -205,6 +205,22 @@ export async function translateGuestTexts(input: {
 
 const LEGACY_SESSION_KEY = "kurkai-legacy-room-session";
 const SESSION_STORAGE_KEY = "kurkai-room-session";
+const HISTORY_HIDDEN_BEFORE_KEY = "kurkai-room-history-hidden-before";
+
+export function getHistoryHiddenBefore(): string | null {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem(HISTORY_HIDDEN_BEFORE_KEY);
+}
+
+export function setHistoryHiddenBefore(iso: string) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(HISTORY_HIDDEN_BEFORE_KEY, iso);
+}
+
+export function clearHistoryHiddenBefore() {
+  if (typeof window === "undefined") return;
+  window.localStorage.removeItem(HISTORY_HIDDEN_BEFORE_KEY);
+}
 
 interface LegacyRoomSession {
   roomNumber: string;

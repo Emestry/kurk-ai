@@ -11,7 +11,8 @@ export interface RealtimeEvent {
     | "inventory.updated"
     | "stocktake.finalized"
     | "alert.low_stock"
-    | "room.session.revoked";
+    | "room.session.revoked"
+    | "room.history.reset";
   requestId: string;
   roomId?: string;
   status?: RequestStatus;

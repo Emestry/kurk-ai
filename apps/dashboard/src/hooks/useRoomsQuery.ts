@@ -86,6 +86,15 @@ export interface IssuePairingCodeResponse {
   expiresAt: string;
 }
 
+export function useResetRoomHistoryMutation() {
+  return useMutation<void, Error, { roomId: string }>({
+    mutationFn: ({ roomId }) =>
+      apiFetch<void>(`/admin/rooms/${roomId}/reset-history`, {
+        method: "POST",
+      }),
+  });
+}
+
 export function useIssuePairingCodeMutation() {
   const qc = useQueryClient();
   return useMutation<IssuePairingCodeResponse, Error, { roomId: string }>({

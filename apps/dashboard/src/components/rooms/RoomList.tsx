@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { toast } from "sonner";
-import { Copy, KeyRound, Wifi, WifiOff } from "lucide-react";
+import { Copy, KeyRound, RotateCcw, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ApiError } from "@/lib/api";
 import {
   useIssuePairingCodeMutation,
+  useResetRoomHistoryMutation,
   useRoomsQuery,
 } from "@/hooks/useRoomsQuery";
 import { RevokeSessionDialog } from "./RevokeSessionDialog";
@@ -99,6 +100,7 @@ function RoomCard({
       <CardContent className="flex flex-1 flex-col gap-4">
         {activeSession && activeDevice ? (
           <ActiveConnection
+            roomId={room.id}
             session={activeSession}
             deviceName={activeDevice.name}
             lastSeenAt={activeDevice.lastSeenAt}
@@ -113,16 +115,29 @@ function RoomCard({
 }
 
 function ActiveConnection({
+  roomId,
   session,
   deviceName,
   lastSeenAt,
   onRevoke,
 }: {
+  roomId: string;
   session: RoomDeviceSessionDTO;
   deviceName: string;
   lastSeenAt: string | null;
   onRevoke: () => void;
 }) {
+  const reset = useResetRoomHistoryMutation();
+
+  async function onReset() {
+    try {
+      await reset.mutateAsync({ roomId });
+      toast.success("Tablet history cleared");
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Reset failed");
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <div className="space-y-1 text-sm">
@@ -139,14 +154,24 @@ function ActiveConnection({
           Expires {formatDistanceToNowStrict(new Date(session.expiresAt), { addSuffix: true })}
         </p>
       </div>
-      <Button
-        size="sm"
-        variant="destructive"
-        className="mt-auto"
-        onClick={onRevoke}
-      >
-        Disconnect tablet
-      </Button>
+      <div className="mt-auto flex flex-col gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onReset}
+          disabled={reset.isPending}
+        >
+          <RotateCcw className="mr-2 h-4 w-4" />
+          {reset.isPending ? "Resetting…" : "Reset history"}
+        </Button>
+        <Button
+          size="sm"
+          variant="destructive"
+          onClick={onRevoke}
+        >
+          Disconnect tablet
+        </Button>
+      </div>
     </div>
   );
 }

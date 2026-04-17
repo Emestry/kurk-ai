@@ -4,7 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, LayoutGroup } from "motion/react";
 import type { GuestState, ParseRequestResponse, RequestStatus } from "@/lib/types";
 import { GuestLanguageProvider, useGuestLanguage } from "@/lib/guest-language";
-import { parseRequest, createRequest, clearSession } from "@/lib/api";
+import {
+  parseRequest,
+  createRequest,
+  clearSession,
+  clearHistoryHiddenBefore,
+  setHistoryHiddenBefore,
+} from "@/lib/api";
 import { useGuestAudio } from "@/hooks/useGuestAudio";
 import { useVoiceCapture } from "@/hooks/useVoiceCapture";
 import { useGuestSocket } from "@/hooks/useGuestSocket";
@@ -95,6 +101,7 @@ function GuestPageContent() {
   const { connectionStatus, requests, setRequests } = useGuestSocket(roomNumber, {
     onSessionRevoked: () => {
       clearSession();
+      clearHistoryHiddenBefore();
       localStorage.removeItem(ROOM_STORAGE_KEY);
       hasArmedWakeWordRef.current = false;
       playCue("error");
@@ -145,6 +152,7 @@ function GuestPageContent() {
 
   function handleSetupSubmit(room: string) {
     localStorage.setItem(ROOM_STORAGE_KEY, room);
+    setHistoryHiddenBefore(new Date().toISOString());
     setRoomNumber(room);
     setState("idle");
     hasArmedWakeWordRef.current = true;

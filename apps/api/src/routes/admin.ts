@@ -3,6 +3,7 @@ import type { MiddlewareHandler } from "hono";
 import { adminMiddleware } from "@/middlewares/auth.js";
 import type { HonoEnv } from "@/lib/types.js";
 import { jsonError } from "@/lib/http.js";
+import { publishRealtimeEvent } from "@/lib/realtime.js";
 import {
   createRoomDevice,
   issueRoomPairingCode,
@@ -81,6 +82,19 @@ export function createAdminRoutes(options: AdminRouteOptions = {}) {
     );
 
     return c.json({ device });
+  });
+
+  admin.post("/rooms/:roomId/reset-history", async (c) => {
+    const roomId = c.req.param("roomId");
+    const occurredAt = new Date().toISOString();
+    publishRealtimeEvent({
+      type: "room.history.reset",
+      requestId: "",
+      roomId,
+      occurredAt,
+      data: { roomId, hiddenBefore: occurredAt },
+    });
+    return c.json({ roomId, hiddenBefore: occurredAt });
   });
 
   admin.post("/device-sessions/:sessionId/revoke", async (c) => {

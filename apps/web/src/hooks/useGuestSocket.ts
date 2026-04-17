@@ -7,6 +7,8 @@ import {
   fetchRoomRequests,
   getApiBaseUrl,
   getCurrentRequest,
+  getHistoryHiddenBefore,
+  setHistoryHiddenBefore,
 } from "@/lib/api";
 
 interface UseGuestSocketOptions {
@@ -19,16 +21,26 @@ interface UseGuestSocketReturn {
   setRequests: React.Dispatch<React.SetStateAction<GuestRequest[]>>;
 }
 
+function filterHistory(requests: GuestRequest[], hiddenBefore: string | null) {
+  if (!hiddenBefore) return requests;
+  return requests.filter((request) => request.createdAt > hiddenBefore);
+}
+
 export function useGuestSocket(
   roomNumber: string | null,
   options: UseGuestSocketOptions = {},
 ): UseGuestSocketReturn {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("disconnected");
-  const [requests, setRequests] = useState<GuestRequest[]>([]);
+  const [rawRequests, setRequests] = useState<GuestRequest[]>([]);
+  const [hiddenBefore, setHiddenBefore] = useState<string | null>(() =>
+    getHistoryHiddenBefore(),
+  );
   const eventSourceRef = useRef<EventSource | null>(null);
   const onSessionRevoked = useEffectEvent(() => {
     options.onSessionRevoked?.();
   });
+
+  const requests = filterHistory(rawRequests, hiddenBefore);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,6 +49,8 @@ export function useGuestSocket(
       if (!roomNumber) {
         return;
       }
+
+      setHiddenBefore(getHistoryHiddenBefore());
 
       try {
         const roomSessionToken = await ensureLegacyRoomSession(roomNumber);
@@ -95,6 +109,12 @@ export function useGuestSocket(
         source.addEventListener("request.updated", onEvent);
         source.addEventListener("request.rejected", onEvent);
         source.addEventListener("request.delivered", onEvent);
+        source.addEventListener("room.history.reset", () => {
+          if (cancelled) return;
+          const stamp = new Date().toISOString();
+          setHistoryHiddenBefore(stamp);
+          setHiddenBefore(stamp);
+        });
         const revoke = () => {
           if (cancelled) return;
           source.close();
