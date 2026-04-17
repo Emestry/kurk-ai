@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import type { GuestState, ParseRequestResponse } from "@/lib/types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { GuestState, ParseRequestResponse, RequestStatus } from "@/lib/types";
 import { GuestLanguageProvider, useGuestLanguage } from "@/lib/guest-language";
 import { parseRequest, createRequest, clearSession } from "@/lib/api";
+import { useGuestAudio } from "@/hooks/useGuestAudio";
 import { useVoiceCapture } from "@/hooks/useVoiceCapture";
 import { useGuestSocket } from "@/hooks/useGuestSocket";
 import { useWakeWord } from "@/hooks/useWakeWord";
@@ -22,6 +23,7 @@ const WAKE_WORD_ENABLED = false;
 
 function GuestPageContent() {
   const { t } = useGuestLanguage();
+  const { playCue, primeAudio } = useGuestAudio();
   const [roomNumber, setRoomNumber] = useState<string | null>(() => {
     if (typeof window === "undefined") {
       return null;
@@ -40,18 +42,29 @@ function GuestPageContent() {
   const [lastTranscript, setLastTranscript] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const hasArmedWakeWordRef = useRef(false);
+  const requestStatusesRef = useRef<Map<string, RequestStatus>>(new Map());
 
   const handleParseRequest = useCallback(async (transcript: string) => {
     try {
       const result = await parseRequest(roomNumber!, transcript);
+
+      if (result.items.length === 0) {
+        playCue("mismatch");
+        setParsedResult(null);
+        setErrorMessage(t("error.noMatchingItems"));
+        setState("confirming");
+        return;
+      }
+
       setParsedResult(result);
       setState("confirming");
     } catch (err) {
+      playCue("error");
       const message = err instanceof Error ? err.message : "Something went wrong, please try again.";
       setErrorMessage(message);
       setState("confirming");
     }
-  }, [roomNumber]);
+  }, [playCue, roomNumber, t]);
 
   const voice = useVoiceCapture({
     onFinalTranscript: (transcript) => {
@@ -68,6 +81,7 @@ function GuestPageContent() {
         return;
       }
 
+      playCue("error");
       setErrorMessage(message);
       setState("confirming");
     },
@@ -82,6 +96,7 @@ function GuestPageContent() {
       clearSession();
       localStorage.removeItem(ROOM_STORAGE_KEY);
       hasArmedWakeWordRef.current = false;
+      playCue("error");
       setRoomNumber(null);
       setParsedResult(null);
       setLastTranscript("");
@@ -93,6 +108,7 @@ function GuestPageContent() {
   const wakeWord = useWakeWord({
     enabled: WAKE_WORD_ENABLED && state === "idle",
     onWake: (command) => {
+      playCue("activation");
       setErrorMessage(null);
       setParsedResult(null);
       setLastTranscript(command ?? "");
@@ -134,8 +150,10 @@ function GuestPageContent() {
   }
 
   function handleStartListening() {
+    void primeAudio();
     setErrorMessage(null);
     setState("listening");
+    playCue("listening");
     voice.start();
   }
 
@@ -153,9 +171,11 @@ function GuestPageContent() {
         parsedResult.items,
         parsedResult.category,
       );
+      playCue("success");
       setRequests((prev) => [newRequest, ...prev.filter((entry) => entry.id !== newRequest.id)]);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to create request.";
+      playCue("error");
       setErrorMessage(message);
     }
 
@@ -176,6 +196,48 @@ function GuestPageContent() {
     setState("idle");
   }
 
+  useEffect(() => {
+    if (requests.length === 0) {
+      requestStatusesRef.current = new Map();
+      return;
+    }
+
+    if (requestStatusesRef.current.size === 0) {
+      requestStatusesRef.current = new Map(
+        requests.map((request) => [request.id, request.status]),
+      );
+      return;
+    }
+
+    const nextStatuses = new Map<string, RequestStatus>();
+
+    for (const request of requests) {
+      nextStatuses.set(request.id, request.status);
+
+      const previousStatus = requestStatusesRef.current.get(request.id);
+
+      if (!previousStatus || previousStatus === request.status) {
+        continue;
+      }
+
+      if (request.status === "rejected") {
+        playCue("error");
+        continue;
+      }
+
+      if (
+        request.status === "delivered" ||
+        request.status === "partially_delivered"
+      ) {
+        playCue("complete");
+      } else {
+        playCue("success");
+      }
+    }
+
+    requestStatusesRef.current = nextStatuses;
+  }, [playCue, requests]);
+
   return (
     <div className="guest-theme dark min-h-screen bg-[var(--guest-bg)]">
       <LanguageToggle />
@@ -183,6 +245,7 @@ function GuestPageContent() {
       {state === "setup" && (
         <SetupScreen
           onSubmit={handleSetupSubmit}
+          onPrimeAudio={primeAudio}
           onArmWakeWord={WAKE_WORD_ENABLED ? wakeWord.arm : async () => undefined}
         />
       )}

@@ -56,6 +56,7 @@ export type TranslationKey =
   | "error.voiceUnavailable"
   | "error.voiceRecording"
   | "error.voicePassiveWake"
+  | "error.noMatchingItems"
   | "error.sessionRevoked"
   | "error.dismiss"
   | "listening.placeholder"
@@ -110,6 +111,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "error.voiceUnavailable": "This device couldn't start the microphone right now. Please try again.",
     "error.voiceRecording": "There was a problem with the voice recording. Please try again.",
     "error.voicePassiveWake": "Passive listening couldn't start. Please tap the orb to speak.",
+    "error.noMatchingItems": "I heard you, but couldn't match that to a hotel item. Please try again with a request like towels, water, or an iron.",
     "error.sessionRevoked": "Staff disconnected this tablet. Please re-pair to continue.",
     "error.dismiss": "Dismiss",
     "listening.placeholder": "Listening...",
@@ -161,6 +163,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "error.voiceUnavailable": "Selle seadme mikrofon ei käivitunud praegu. Proovi uuesti.",
     "error.voiceRecording": "Häälsalvestusega tekkis probleem. Proovi uuesti.",
     "error.voicePassiveWake": "Taustakuulamist ei saanud käivitada. Rääkimiseks puuduta kera.",
+    "error.noMatchingItems": "Ma kuulsin sind, aga ei leidnud sellele hotellis sobivat eset. Proovi uuesti näiteks käterätikute, vee või triikrauaga.",
     "error.sessionRevoked": "Personal ühendas selle tahvli lahti. Palun paarida uuesti.",
     "error.dismiss": "Sulge",
     "listening.placeholder": "Kuulan...",
@@ -212,6 +215,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "error.voiceUnavailable": "Este dispositivo no pudo iniciar el micrófono ahora mismo. Inténtalo de nuevo.",
     "error.voiceRecording": "Hubo un problema con la grabación de voz. Inténtalo de nuevo.",
     "error.voicePassiveWake": "No se pudo iniciar la escucha pasiva. Toca la esfera para hablar.",
+    "error.noMatchingItems": "Te escuché, pero no pude asociarlo a un artículo del hotel. Inténtalo de nuevo con algo como toallas, agua o una plancha.",
     "error.sessionRevoked": "El personal desconectó esta tableta. Vuelve a vincularla para continuar.",
     "error.dismiss": "Cerrar",
     "listening.placeholder": "Escuchando...",
@@ -263,6 +267,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "error.voiceUnavailable": "Cet appareil n’a pas pu démarrer le microphone pour le moment. Veuillez réessayer.",
     "error.voiceRecording": "Un problème est survenu pendant l’enregistrement vocal. Veuillez réessayer.",
     "error.voicePassiveWake": "L’écoute passive n’a pas pu démarrer. Touchez l’orbe pour parler.",
+    "error.noMatchingItems": "Je vous ai entendu, mais je n’ai pas pu associer cela à un article de l’hôtel. Réessayez avec quelque chose comme des serviettes, de l’eau ou un fer à repasser.",
     "error.sessionRevoked": "Le personnel a déconnecté cette tablette. Veuillez la réappairer pour continuer.",
     "error.dismiss": "Fermer",
     "listening.placeholder": "J’écoute...",
@@ -314,6 +319,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "error.voiceUnavailable": "Сейчас не удалось запустить микрофон на этом устройстве. Попробуйте снова.",
     "error.voiceRecording": "Во время голосовой записи возникла проблема. Попробуйте снова.",
     "error.voicePassiveWake": "Не удалось включить фоновое прослушивание. Нажмите на сферу, чтобы говорить.",
+    "error.noMatchingItems": "Я вас услышал, но не смог сопоставить это с предметом в отеле. Попробуйте снова с чем-то вроде полотенец, воды или утюга.",
     "error.sessionRevoked": "Персонал отключил этот планшет. Выполните повторное сопряжение, чтобы продолжить.",
     "error.dismiss": "Закрыть",
     "listening.placeholder": "Слушаю...",
@@ -365,6 +371,7 @@ const TRANSLATIONS: TranslationDictionary = {
     "error.voiceUnavailable": "Dieses Gerät konnte das Mikrofon gerade nicht starten. Bitte versuche es erneut.",
     "error.voiceRecording": "Bei der Sprachaufnahme ist ein Problem aufgetreten. Bitte versuche es erneut.",
     "error.voicePassiveWake": "Passives Zuhören konnte nicht gestartet werden. Tippe auf die Kugel, um zu sprechen.",
+    "error.noMatchingItems": "Ich habe dich gehört, konnte das aber keinem Hotelartikel zuordnen. Versuche es noch einmal mit etwas wie Handtüchern, Wasser oder einem Bügeleisen.",
     "error.sessionRevoked": "Das Personal hat dieses Tablet getrennt. Bitte erneut koppeln, um fortzufahren.",
     "error.dismiss": "Schließen",
     "listening.placeholder": "Ich höre zu...",

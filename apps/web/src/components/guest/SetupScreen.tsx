@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useGuestAudio } from "@/hooks/useGuestAudio";
 import { createDeviceSession, storeSession } from "@/lib/api";
 import { useGuestLanguage } from "@/lib/guest-language";
 import { useTranslatedTexts } from "@/hooks/useTranslatedTexts";
 
 interface SetupScreenProps {
   onSubmit: (roomNumber: string) => void;
+  onPrimeAudio: () => Promise<void>;
   onArmWakeWord: () => Promise<void>;
 }
 
@@ -22,8 +24,13 @@ function getDeviceFingerprint(): string {
   ].join(":");
 }
 
-export function SetupScreen({ onSubmit, onArmWakeWord }: SetupScreenProps) {
+export function SetupScreen({
+  onSubmit,
+  onPrimeAudio,
+  onArmWakeWord,
+}: SetupScreenProps) {
   const { language, t } = useGuestLanguage();
+  const { playCue } = useGuestAudio();
   const [roomNumber, setRoomNumber] = useState("");
   const [pairingCode, setPairingCode] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -40,6 +47,7 @@ export function SetupScreen({ onSubmit, onArmWakeWord }: SetupScreenProps) {
     setError(null);
 
     try {
+      await onPrimeAudio();
       await onArmWakeWord();
       const session = await createDeviceSession({
         roomCode: `ROOM-${trimmedRoom}`,
@@ -48,10 +56,12 @@ export function SetupScreen({ onSubmit, onArmWakeWord }: SetupScreenProps) {
         deviceName: `Room ${trimmedRoom} Tablet`,
       });
       storeSession(session);
+      playCue("activation");
       onSubmit(session.roomNumber);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : t("setup.activationError");
+      playCue("error");
       setError(message);
       setIsSubmitting(false);
     }
