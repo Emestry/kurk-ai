@@ -105,6 +105,11 @@ export function useGuestSocket(
           void refresh();
         };
 
+        const markConnected = () => {
+          if (!cancelled) setConnectionStatus("connected");
+        };
+        source.onopen = markConnected;
+        source.addEventListener("connected", markConnected);
         source.addEventListener("request.created", onEvent);
         source.addEventListener("request.updated", onEvent);
         source.addEventListener("request.rejected", onEvent);
