@@ -214,7 +214,9 @@ export type LiveEventType =
   | "request.delivered"
   | "inventory.updated"
   | "stocktake.finalized"
-  | "alert.low_stock";
+  | "alert.low_stock"
+  | "room.session.created"
+  | "room.session.revoked";
 
 export interface LiveEvent {
   type: LiveEventType;

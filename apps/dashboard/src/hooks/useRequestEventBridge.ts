@@ -71,6 +71,10 @@ export function useRequestEventBridge() {
           qc.invalidateQueries({ queryKey: queryKeys.stocktake.all() });
           qc.invalidateQueries({ queryKey: queryKeys.reports.all() });
           break;
+        case "room.session.created":
+        case "room.session.revoked":
+          qc.invalidateQueries({ queryKey: queryKeys.rooms.all() });
+          break;
       }
     });
     return unsubscribe;

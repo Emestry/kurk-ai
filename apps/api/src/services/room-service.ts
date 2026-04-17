@@ -241,6 +241,20 @@ export async function createRoomDeviceSession(input: {
     });
   }
 
+  // Announce the new pairing so the dashboard can flip the room card to
+  // Connected without waiting for a manual refresh.
+  publishRealtimeEvent({
+    type: "room.session.created",
+    requestId: "",
+    roomId: session.room.id,
+    occurredAt: new Date().toISOString(),
+    data: {
+      sessionId: session.id,
+      roomId: session.room.id,
+      roomDeviceId: session.roomDeviceId,
+    },
+  });
+
   return {
     sessionId: session.id,
     token: session.token,
