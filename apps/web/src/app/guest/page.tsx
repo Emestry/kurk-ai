@@ -90,7 +90,7 @@ function GuestPageContent() {
 
   const voice = useVoiceCapture({
     onFinalTranscript: (transcript) => {
-      if (state !== "listening") {
+      if (state !== "listening" && state !== "processing") {
         return;
       }
 
@@ -99,7 +99,7 @@ function GuestPageContent() {
       void handleParseRequest(transcript);
     },
     onError: (message) => {
-      if (state !== "listening") {
+      if (state !== "listening" && state !== "processing") {
         return;
       }
 
@@ -108,7 +108,7 @@ function GuestPageContent() {
       setState("confirming");
     },
     onStopWithoutTranscript: () => {
-      if (state === "listening") {
+      if (state === "listening" || state === "processing") {
         setState("idle");
       }
     },
@@ -182,6 +182,13 @@ function GuestPageContent() {
   }
 
   function handleStopListening() {
+    const capturedTranscript = (voice.finalTranscript || voice.interimTranscript).trim();
+
+    if (capturedTranscript && state === "listening") {
+      setLastTranscript(capturedTranscript);
+      setState("processing");
+    }
+
     voice.stop();
   }
 
