@@ -148,6 +148,7 @@ export async function submitGuestRequest(input: {
   source: "text" | "voice";
   rawText: string;
   items?: Array<{ inventoryItemId: string; quantity: number }>;
+  allowPartial?: boolean;
 }) {
   const response = await fetch(`${getApiBaseUrl()}/guest/requests`, {
     method: "POST",
@@ -159,10 +160,36 @@ export async function submitGuestRequest(input: {
       source: input.source,
       rawText: input.rawText,
       items: input.items,
+      allowPartial: input.allowPartial === true,
     }),
   });
 
   return parseJson<RequestSummary>(response);
+}
+
+export interface AvailabilityLine {
+  inventoryItemId: string;
+  name: string;
+  requestedQuantity: number;
+  availableQuantity: number;
+}
+
+export interface AvailabilityPreview {
+  lines: AvailabilityLine[];
+  fullyAvailable: boolean;
+  anyAvailable: boolean;
+}
+
+export async function previewGuestRequest(input: {
+  items: Array<{ inventoryItemId: string; quantity: number }>;
+}): Promise<AvailabilityPreview> {
+  const response = await fetch(`${getApiBaseUrl()}/guest/requests/preview`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ items: input.items }),
+  });
+
+  return parseJson<AvailabilityPreview>(response);
 }
 
 export async function transcribeGuestAudio(input: {
@@ -334,6 +361,7 @@ export async function createRequest(
   text: string,
   items: Array<{ inventory_item_id: string; name: string; quantity: number }>,
   category: string,
+  options: { allowPartial?: boolean } = {},
 ): Promise<GuestRequest> {
   void category;
   const roomSessionToken = await ensureLegacyRoomSession(room);
@@ -345,6 +373,7 @@ export async function createRequest(
       inventoryItemId: item.inventory_item_id,
       quantity: item.quantity,
     })),
+    allowPartial: options.allowPartial,
   });
 
   return mapSummaryToLegacyRequest(created);

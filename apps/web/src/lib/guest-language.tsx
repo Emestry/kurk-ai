@@ -50,6 +50,10 @@ export type TranslationKey =
   | "confirm.itemsFound"
   | "confirm.cancel"
   | "confirm.confirm"
+  | "partial.description"
+  | "partial.available"
+  | "partial.unavailable"
+  | "partial.confirm"
   | "error.voiceNoSpeech"
   | "error.voiceTranscription"
   | "error.voicePermission"
@@ -105,6 +109,10 @@ const TRANSLATIONS: TranslationDictionary = {
     "confirm.itemsFound": "Items found",
     "confirm.cancel": "Cancel",
     "confirm.confirm": "Confirm",
+    "partial.description": "Some items aren't available right now. Send the rest?",
+    "partial.available": "Available now",
+    "partial.unavailable": "Not available",
+    "partial.confirm": "Send partial order",
     "error.voiceNoSpeech": "I couldn't catch that. Please try again and speak a little closer.",
     "error.voiceTranscription": "I heard you, but couldn't understand the request clearly. Please try again.",
     "error.voicePermission": "Microphone access is blocked. Please allow microphone access and try again.",
@@ -157,6 +165,10 @@ const TRANSLATIONS: TranslationDictionary = {
     "confirm.itemsFound": "Leitud esemed",
     "confirm.cancel": "Tühista",
     "confirm.confirm": "Kinnita",
+    "partial.description": "Mõnda eset pole praegu saadaval. Kas saadan ülejäänud?",
+    "partial.available": "Praegu saadaval",
+    "partial.unavailable": "Ei ole saadaval",
+    "partial.confirm": "Saada osaline tellimus",
     "error.voiceNoSpeech": "Ma ei saanud sellest hästi aru. Proovi uuesti ja räägi veidi lähemalt.",
     "error.voiceTranscription": "Ma kuulsin sind, aga ei saanud päringust piisavalt selgelt aru. Proovi uuesti.",
     "error.voicePermission": "Mikrofoni kasutus on blokeeritud. Luba mikrofon ja proovi uuesti.",
@@ -209,6 +221,10 @@ const TRANSLATIONS: TranslationDictionary = {
     "confirm.itemsFound": "Artículos encontrados",
     "confirm.cancel": "Cancelar",
     "confirm.confirm": "Confirmar",
+    "partial.description": "Algunos artículos no están disponibles. ¿Enviamos el resto?",
+    "partial.available": "Disponible ahora",
+    "partial.unavailable": "No disponible",
+    "partial.confirm": "Enviar pedido parcial",
     "error.voiceNoSpeech": "No pude captar eso bien. Inténtalo de nuevo y habla un poco más cerca.",
     "error.voiceTranscription": "Te escuché, pero no pude entender claramente la solicitud. Inténtalo de nuevo.",
     "error.voicePermission": "El acceso al micrófono está bloqueado. Permite el acceso al micrófono e inténtalo de nuevo.",
@@ -261,6 +277,10 @@ const TRANSLATIONS: TranslationDictionary = {
     "confirm.itemsFound": "Articles trouvés",
     "confirm.cancel": "Annuler",
     "confirm.confirm": "Confirmer",
+    "partial.description": "Certains articles ne sont pas disponibles. Envoyer le reste ?",
+    "partial.available": "Disponible",
+    "partial.unavailable": "Non disponible",
+    "partial.confirm": "Envoyer la commande partielle",
     "error.voiceNoSpeech": "Je n’ai pas bien compris. Veuillez réessayer en parlant un peu plus près.",
     "error.voiceTranscription": "Je vous ai entendu, mais je n’ai pas compris clairement la demande. Veuillez réessayer.",
     "error.voicePermission": "L’accès au microphone est bloqué. Veuillez autoriser le microphone puis réessayer.",
@@ -313,6 +333,10 @@ const TRANSLATIONS: TranslationDictionary = {
     "confirm.itemsFound": "Найденные позиции",
     "confirm.cancel": "Отмена",
     "confirm.confirm": "Подтвердить",
+    "partial.description": "Некоторых позиций сейчас нет. Отправить остальное?",
+    "partial.available": "Доступно сейчас",
+    "partial.unavailable": "Недоступно",
+    "partial.confirm": "Отправить частичный заказ",
     "error.voiceNoSpeech": "Я не смог хорошо расслышать. Попробуйте ещё раз и говорите чуть ближе.",
     "error.voiceTranscription": "Я вас услышал, но не смог чётко понять запрос. Попробуйте ещё раз.",
     "error.voicePermission": "Доступ к микрофону заблокирован. Разрешите доступ к микрофону и попробуйте снова.",
@@ -365,6 +389,10 @@ const TRANSLATIONS: TranslationDictionary = {
     "confirm.itemsFound": "Gefundene Artikel",
     "confirm.cancel": "Abbrechen",
     "confirm.confirm": "Bestätigen",
+    "partial.description": "Einige Artikel sind gerade nicht verfügbar. Den Rest senden?",
+    "partial.available": "Jetzt verfügbar",
+    "partial.unavailable": "Nicht verfügbar",
+    "partial.confirm": "Teilbestellung senden",
     "error.voiceNoSpeech": "Ich konnte das nicht gut erfassen. Bitte versuche es noch einmal und sprich etwas näher.",
     "error.voiceTranscription": "Ich habe dich gehört, konnte die Anfrage aber nicht klar verstehen. Bitte versuche es noch einmal.",
     "error.voicePermission": "Der Mikrofonzugriff ist blockiert. Bitte erlaube den Mikrofonzugriff und versuche es erneut.",

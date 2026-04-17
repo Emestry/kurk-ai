@@ -10,6 +10,8 @@ import {
   clearSession,
   clearHistoryHiddenBefore,
   setHistoryHiddenBefore,
+  previewGuestRequest,
+  type AvailabilityLine,
 } from "@/lib/api";
 import { useGuestAudio } from "@/hooks/useGuestAudio";
 import { useVoiceCapture } from "@/hooks/useVoiceCapture";
@@ -19,7 +21,11 @@ import { SetupScreen } from "@/components/guest/SetupScreen";
 import { GuestView } from "@/components/guest/GuestView";
 import { ListeningOverlay } from "@/components/guest/ListeningOverlay";
 import { LanguageToggle } from "@/components/guest/LanguageToggle";
-import { ConfirmPopup, ErrorPopup } from "@/components/guest/ConfirmPopup";
+import {
+  ConfirmPopup,
+  ErrorPopup,
+  PartialConfirmPopup,
+} from "@/components/guest/ConfirmPopup";
 
 const ROOM_STORAGE_KEY = "kurkai-room-number";
 
@@ -49,6 +55,7 @@ function GuestPageContent() {
   const [lastTranscript, setLastTranscript] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [partialLines, setPartialLines] = useState<AvailabilityLine[] | null>(null);
   const hasArmedWakeWordRef = useRef(false);
   const requestStatusesRef = useRef<Map<string, RequestStatus>>(new Map());
 
@@ -178,6 +185,33 @@ function GuestPageContent() {
     voice.stop();
   }
 
+  async function submitFinalRequest(allowPartial: boolean) {
+    if (!parsedResult || !roomNumber) return;
+    setIsSubmitting(true);
+    try {
+      const newRequest = await createRequest(
+        roomNumber,
+        lastTranscript,
+        parsedResult.items,
+        parsedResult.category,
+        { allowPartial },
+      );
+      playCue("success");
+      setRequests((prev) => [newRequest, ...prev.filter((entry) => entry.id !== newRequest.id)]);
+      setParsedResult(null);
+      setPartialLines(null);
+      setLastTranscript("");
+      setState("idle");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to create request.";
+      playCue("error");
+      setErrorMessage(message);
+      setPartialLines(null);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   async function handleConfirm() {
     if (!parsedResult || !roomNumber) return;
     if (isSubmitting) return;
@@ -185,22 +219,32 @@ function GuestPageContent() {
     setIsSubmitting(true);
 
     try {
-      const newRequest = await createRequest(
-        roomNumber,
-        lastTranscript,
-        parsedResult.items,
-        parsedResult.category,
-      );
-      playCue("success");
-      setRequests((prev) => [newRequest, ...prev.filter((entry) => entry.id !== newRequest.id)]);
-      setParsedResult(null);
-      setLastTranscript("");
-      setState("idle");
+      const preview = await previewGuestRequest({
+        items: parsedResult.items.map((item) => ({
+          inventoryItemId: item.inventory_item_id,
+          quantity: item.quantity,
+        })),
+      });
+
+      if (!preview.anyAvailable) {
+        playCue("error");
+        setErrorMessage(t("partial.description"));
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (preview.fullyAvailable) {
+        await submitFinalRequest(false);
+        return;
+      }
+
+      // Some but not all items — ask the guest to confirm a partial order.
+      setPartialLines(preview.lines);
+      setIsSubmitting(false);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to create request.";
+      const message = err instanceof Error ? err.message : "Failed to check availability.";
       playCue("error");
       setErrorMessage(message);
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -236,8 +280,22 @@ function GuestPageContent() {
     }
   }
 
+  function handleConfirmPartial() {
+    if (isSubmitting) return;
+    void submitFinalRequest(true);
+  }
+
+  function handleCancelPartial() {
+    if (isSubmitting) return;
+    setPartialLines(null);
+    setParsedResult(null);
+    setLastTranscript("");
+    setState("idle");
+  }
+
   function handleCancel() {
     setParsedResult(null);
+    setPartialLines(null);
     setLastTranscript("");
     setErrorMessage(null);
     setState("idle");
@@ -245,6 +303,9 @@ function GuestPageContent() {
 
   function handleDismissError() {
     setErrorMessage(null);
+    setPartialLines(null);
+    setParsedResult(null);
+    setLastTranscript("");
     setState("idle");
   }
 
@@ -335,7 +396,7 @@ function GuestPageContent() {
             </div>
           )}
 
-          {state === "confirming" && parsedResult && !errorMessage && (
+          {state === "confirming" && parsedResult && !errorMessage && !partialLines && (
             <ConfirmPopup
               parsed={parsedResult}
               transcript={lastTranscript}
@@ -343,6 +404,15 @@ function GuestPageContent() {
               onCancel={handleCancel}
               isSubmitting={isSubmitting}
               onClarifySelect={handleClarifySelect}
+            />
+          )}
+
+          {state === "confirming" && partialLines && !errorMessage && (
+            <PartialConfirmPopup
+              lines={partialLines}
+              onConfirm={handleConfirmPartial}
+              onCancel={handleCancelPartial}
+              isSubmitting={isSubmitting}
             />
           )}
 

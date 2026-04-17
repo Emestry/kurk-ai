@@ -3,7 +3,10 @@ import { streamSSE } from "hono/streaming";
 import { jsonError } from "@/lib/http.js";
 import { subscribeToRealtimeEvents } from "@/lib/realtime.js";
 import { roomDeviceAuthMiddleware } from "@/middlewares/room-device-auth.js";
-import { listInventoryItems } from "@/services/inventory-service.js";
+import {
+  checkInventoryAvailability,
+  listInventoryItems,
+} from "@/services/inventory-service.js";
 import {
   createGuestRequest,
   getCurrentGuestRequest,
@@ -28,6 +31,14 @@ interface CreateGuestRequestBody {
   roomCode?: string;
   source?: string;
   rawText?: string;
+  items?: Array<{
+    inventoryItemId?: string;
+    quantity?: number;
+  }>;
+  allowPartial?: boolean;
+}
+
+interface PreviewGuestRequestBody {
   items?: Array<{
     inventoryItemId?: string;
     quantity?: number;
@@ -85,6 +96,7 @@ function parseRequestBody(body: CreateGuestRequestBody): CreateGuestRequestInput
     source: body.source,
     rawText: body.rawText.trim(),
     items,
+    allowPartial: body.allowPartial === true,
   };
 }
 
@@ -290,6 +302,38 @@ guest.get("/events", async (c) => {
 
       c.req.raw.signal.addEventListener("abort", abort, { once: true });
     });
+  });
+});
+
+guest.post("/requests/preview", async (c) => {
+  const body = await c.req.json<PreviewGuestRequestBody>();
+  const rawItems = Array.isArray(body?.items) ? body.items : [];
+  const inputs = rawItems
+    .map((item) => ({
+      inventoryItemId: item.inventoryItemId?.trim() ?? "",
+      quantity: item.quantity ?? 0,
+    }))
+    .filter(
+      (item) =>
+        item.inventoryItemId &&
+        Number.isInteger(item.quantity) &&
+        item.quantity > 0,
+    );
+
+  if (inputs.length === 0) {
+    return jsonError(c, 400, "At least one inventory item is required");
+  }
+
+  const lines = await checkInventoryAvailability(inputs);
+  const fullyAvailable = lines.every(
+    (line) => line.availableQuantity >= line.requestedQuantity,
+  );
+  const anyAvailable = lines.some((line) => line.availableQuantity > 0);
+
+  return c.json({
+    lines,
+    fullyAvailable,
+    anyAvailable,
   });
 });
 

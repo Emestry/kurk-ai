@@ -386,6 +386,47 @@ export async function adjustInventoryItem(input: {
   });
 }
 
+export interface AvailabilityLine {
+  inventoryItemId: string;
+  name: string;
+  requestedQuantity: number;
+  availableQuantity: number;
+}
+
+/**
+ * Reports what fraction of each requested line we could currently satisfy,
+ * without touching inventory. Used by the guest-side confirm flow so we can
+ * offer a partial order when some items are short.
+ */
+export async function checkInventoryAvailability(
+  inputs: Array<{ inventoryItemId: string; quantity: number }>,
+  db?: DbClient,
+): Promise<AvailabilityLine[]> {
+  if (inputs.length === 0) return [];
+
+  const run = async (client: DbClient) => {
+    const items = await client.inventoryItem.findMany({
+      where: { id: { in: inputs.map((input) => input.inventoryItemId) } },
+    });
+    const byId = new Map(items.map((item) => [item.id, item]));
+
+    return inputs.map((input) => {
+      const item = byId.get(input.inventoryItemId);
+      const availableQuantity = item
+        ? Math.max(0, item.quantityInStock - item.quantityReserved)
+        : 0;
+      return {
+        inventoryItemId: input.inventoryItemId,
+        name: item?.name ?? "",
+        requestedQuantity: input.quantity,
+        availableQuantity,
+      };
+    });
+  };
+
+  return db ? run(db) : withDbTransaction(run);
+}
+
 /**
  * Reserves inventory atomically for a newly created guest request.
  */

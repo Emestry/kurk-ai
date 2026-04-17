@@ -9,6 +9,7 @@ import { withDbTransaction } from "@/lib/db.js";
 import { ApiError } from "@/lib/errors.js";
 import { publishRealtimeEvent } from "@/lib/realtime.js";
 import {
+  checkInventoryAvailability,
   finalizeReservations,
   releaseReservations,
   reserveInventory,
@@ -29,6 +30,13 @@ export interface CreateGuestRequestInput {
     inventoryItemId: string;
     quantity: number;
   }>;
+  /**
+   * When true, line quantities that exceed live stock are clamped to the
+   * available amount before reserving. The request is only rejected when
+   * nothing at all can be fulfilled; otherwise it proceeds with whatever is
+   * in stock. The guest opts in via the "confirm partial order" popup.
+   */
+  allowPartial?: boolean;
 }
 
 export interface GuestRequestItemSummary {
@@ -224,6 +232,36 @@ export async function createGuestRequest(input: CreateGuestRequestInput) {
         }
       : await parseGuestRequestText(input.rawText);
 
+  // When the guest has opted into a partial fulfillment, drop items that
+  // can't be reserved at all and clamp every remaining line to what's
+  // actually in stock — the persisted request then reflects the real order,
+  // not the original ask. If nothing can be fulfilled we reject early.
+  let effectiveItems = parsed.items;
+  if (input.allowPartial) {
+    const availability = await checkInventoryAvailability(
+      parsed.items.map((item) => ({
+        inventoryItemId: item.inventoryItemId,
+        quantity: item.quantity,
+      })),
+    );
+    const availableByItem = new Map(
+      availability.map((line) => [line.inventoryItemId, line.availableQuantity]),
+    );
+    effectiveItems = parsed.items
+      .map((item) => ({
+        ...item,
+        quantity: Math.min(item.quantity, availableByItem.get(item.inventoryItemId) ?? 0),
+      }))
+      .filter((item) => item.quantity > 0);
+
+    if (effectiveItems.length === 0) {
+      throw new ApiError(
+        422,
+        "Out of stock: none of the requested items are available right now",
+      );
+    }
+  }
+
   const result = await withDbTransaction(async (db) => {
     const request = await db.guestRequest.create({
       data: {
@@ -235,7 +273,7 @@ export async function createGuestRequest(input: CreateGuestRequestInput) {
         category: parsed.category ?? undefined,
         guestMessage: "Done. We've let the front desk know.",
         items: {
-          create: parsed.items.map((item) => ({
+          create: effectiveItems.map((item) => ({
             inventoryItemId: item.inventoryItemId,
             requestedQuantity: item.quantity,
           })),
