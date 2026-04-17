@@ -38,7 +38,7 @@ export function useRequestEventBridge() {
           // inventory.updated event is best-effort and can be missed).
           qc.invalidateQueries({ queryKey: queryKeys.requests.all() });
           qc.invalidateQueries({ queryKey: queryKeys.inventory.all() });
-          playSound();
+          playSound("new-request");
           toast(`New request · Room ${String(event.data.roomNumber ?? "")}`, {
             description: String(event.data.guestMessage ?? ""),
           });
@@ -51,6 +51,7 @@ export function useRequestEventBridge() {
           // counts move too, so invalidate both caches.
           qc.invalidateQueries({ queryKey: queryKeys.requests.all() });
           qc.invalidateQueries({ queryKey: queryKeys.inventory.all() });
+          playSound("status-update");
           break;
         }
         case "inventory.updated":
@@ -59,6 +60,12 @@ export function useRequestEventBridge() {
           // an item crosses its threshold (see inventory-service.emitInventoryUpdate),
           // so we must refresh on both to keep Reserved/Available counts current.
           qc.invalidateQueries({ queryKey: queryKeys.inventory.all() });
+          if (event.type === "alert.low_stock") {
+            playSound("low-stock");
+            toast("Low stock alert", {
+              description: String(event.data.message ?? "Inventory dropped below threshold."),
+            });
+          }
           break;
         case "stocktake.finalized":
           qc.invalidateQueries({ queryKey: queryKeys.stocktake.all() });
